@@ -85,15 +85,42 @@
         .comment-author { font-weight: bold; color: #333; }
         .comment-text { margin: 0 0 10px 0; color: #444; white-space: pre-line; font-size: 15px; }
         .file-attachment img { max-width: 100%; max-height: 250px; border-radius: 4px; display: block; margin-top: 5px; }
+
+        /* 按讚按鈕樣式 */
+        .like-container {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .like-btn {
+            background: #ffffff;
+            border: 1px solid #ff4757;
+            color: #ff4757;
+            padding: 4px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+        .like-btn:hover {
+            background: #ff4757;
+            color: #ffffff;
+        }
+        .like-btn.liked {
+            background: #ff4757;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
 
     <div class="comment-box">
         <div style="text-align: center; margin-bottom: 15px;">
-    <!-- 請將 src 替換成你的 Logo 圖片網址 -->
-    <img src="IMG_20261005_171430.jpg" alt="Logo" style="max-width: 120px; height: auto;">
-    <h2 style="margin-top: 10px;">LINE的pro版->AREA</h2>
+            <img src="IMG_20261005_171430.jpg" alt="Logo" style="max-width: 120px; height: auto;">
+            <h2 style="margin-top: 10px;">LINE的pro版->AREA</h2>
         </div>
         
         <form id="commentForm">
@@ -136,7 +163,7 @@
     <!-- 載入 Firebase Realtime Database -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, onChildChanged, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
@@ -167,7 +194,6 @@
                 const end = textArea.selectionEnd;
                 const text = textArea.value;
                 
-                // 將表情符號插在游標當前位置
                 textArea.value = text.substring(0, start) + emoji + text.substring(end);
                 textArea.focus();
                 textArea.selectionStart = textArea.selectionEnd = start + emoji.length;
@@ -229,6 +255,7 @@
                     author: author,
                     text: text,
                     imageUrl: imageUrl,
+                    likes: 0, // 新增按讚預設值
                     timestamp: new Date().toLocaleString('zh-TW', { hour12: false })
                 });
 
@@ -245,11 +272,19 @@
             }
         });
 
-        // 實時監聽新留言
-        onChildAdded(commentsRef, (snapshot) => {
+        // 處理按讚功能（使用 Transaction 確保多使用者同步正確）
+        window.handleLike = function(commentKey) {
+            const commentLikeRef = ref(db, `comments/${commentKey}/likes`);
+            runTransaction(commentLikeRef, (currentLikes) => {
+                return (currentLikes || 0) + 1;
+            });
+        };
+
+        // 渲染留言內容
+        function renderComment(snapshot) {
             const data = snapshot.val();
-            const div = document.createElement('div');
-            div.className = 'comment-item';
+            const key = snapshot.key;
+            const likesCount = data.likes || 0;
 
             let imageHTML = '';
             if (data.imageUrl) {
@@ -261,17 +296,40 @@
                     </div>`;
             }
 
-            div.innerHTML = `
+            return `
                 <div class="comment-header">
                     <span class="comment-author">${escapeHTML(data.author)}</span>
                     <span>${data.timestamp}</span>
                 </div>
                 <p class="comment-text">${escapeHTML(data.text)}</p>
                 ${imageHTML}
+                <div class="like-container">
+                    <button type="button" class="like-btn" onclick="handleLike('${key}')">
+                        ❤️讚 <span id="like-count-${key}">${likesCount}</span>
+                    </button>
+                </div>
             `;
+        }
+
+        // 實時監聽新留言
+        onChildAdded(commentsRef, (snapshot) => {
+            const div = document.createElement('div');
+            div.className = 'comment-item';
+            div.id = `comment-${snapshot.key}`;
+            div.innerHTML = renderComment(snapshot);
             
             const header = commentList.querySelector('h3');
             header.after(div);
+        });
+
+        // 實時監聽留言更新（讚數改變時即時刷新頁面數字）
+        onChildChanged(commentsRef, (snapshot) => {
+            const key = snapshot.key;
+            const data = snapshot.val();
+            const countSpan = document.getElementById(`like-count-${key}`);
+            if (countSpan) {
+                countSpan.innerText = data.likes || 0;
+            }
         });
 
         function escapeHTML(str) {
