@@ -185,7 +185,7 @@
         import { getDatabase, ref, push, remove, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // 🔑 在此設定您的「最高管理員密碼」
-        const ADMIN_PASSWORD = "admin1234"; 
+        const ADMIN_PASSWORD = "zack05120512"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
@@ -370,4 +370,41 @@
 
         // 實時監聽新留言
         onChildAdded(commentsRef, (snapshot) => {
-            if (
+            if (document.getElementById(`comment-${snapshot.key}`)) return;
+
+            const div = document.createElement('div');
+            div.className = 'comment-item';
+            div.id = `comment-${snapshot.key}`;
+            div.innerHTML = renderComment(snapshot);
+            
+            const header = commentList.querySelector('h3');
+            header.after(div);
+        });
+
+        // 實時監聽留言更新（讚數改變時即時刷新頁面數字）
+        onChildChanged(commentsRef, (snapshot) => {
+            const key = snapshot.key;
+            const data = snapshot.val();
+            const countSpan = document.getElementById(`like-count-${key}`);
+            if (countSpan && data) {
+                countSpan.innerText = data.likes || 0;
+            }
+        });
+
+        // 實時監聽留言刪除（當有留言被刪除時自動自網頁移除）
+        onChildRemoved(commentsRef, (snapshot) => {
+            const deletedElement = document.getElementById(`comment-${snapshot.key}`);
+            if (deletedElement) {
+                deletedElement.remove();
+            }
+        });
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag] || tag));
+        }
+    </script>
+</body>
+</html>
