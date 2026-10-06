@@ -184,6 +184,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, remove, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // 🔑 在此設定您的「最高管理員密碼」
+        const ADMIN_PASSWORD = "admin1234"; 
+
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
             authDomain: "my-project-zack0512.firebaseapp.com",
@@ -273,7 +276,7 @@
 
                 push(commentsRef, {
                     author: author,
-                    password: password || "",
+                    password: password || "", // 儲存使用者說明的刪除密碼
                     text: text,
                     imageUrl: imageUrl,
                     likes: 0,
@@ -294,7 +297,7 @@
             }
         });
 
-        // 處理按讚功能
+        // 處理按讚功能（使用 Transaction 確保多使用者同步正確）
         window.handleLike = function(commentKey) {
             const commentLikeRef = ref(db, `comments/${commentKey}/likes`);
             runTransaction(commentLikeRef, (currentLikes) => {
@@ -302,20 +305,20 @@
             });
         };
 
-        // 處理驗證密碼與刪除功能
+        // 處理驗證密碼與刪除功能（支援使用者密碼與管理員密碼）
         window.handleDelete = async function(commentKey) {
-            const inputPwd = prompt("請輸入刪除密碼：");
-            if (inputPwd === null) return; // 使用者按取消
+            const inputPwd = prompt("請輸入刪除密碼（使用者設定之密碼或管理者密碼）：");
+            if (inputPwd === null) return; // 使用者按下取消
 
             const itemRef = ref(db, `comments/${commentKey}`);
             try {
                 const snapshot = await get(itemRef);
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    const correctPwd = data.password || "";
+                    const userPwd = data.password || ""; // 若留言者沒設定，預設為空字串
 
-                    // 若沒有設定密碼（留空）或輸入的密碼正確，即可刪除
-                    if (inputPwd === correctPwd) {
+                    // 只要輸入的密碼相符使用者密碼，或是符合管理者密碼，即可進行刪除
+                    if (inputPwd === userPwd || inputPwd === ADMIN_PASSWORD) {
                         await remove(itemRef);
                     } else {
                         alert("❌ 密碼錯誤，無法刪除此留言！");
@@ -326,7 +329,7 @@
             }
         };
 
-        // 渲染留言 HTML 結構（完美防護相容舊資料）
+        // 渲染留言內容
         function renderComment(snapshot) {
             const data = snapshot.val();
             if (!data) return '';
@@ -365,43 +368,6 @@
             `;
         }
 
-        // 實時監聽新留言（防重複渲染）
+        // 實時監聽新留言
         onChildAdded(commentsRef, (snapshot) => {
-            if (document.getElementById(`comment-${snapshot.key}`)) return;
-
-            const div = document.createElement('div');
-            div.className = 'comment-item';
-            div.id = `comment-${snapshot.key}`;
-            div.innerHTML = renderComment(snapshot);
-            
-            const header = commentList.querySelector('h3');
-            header.after(div);
-        });
-
-        // 實時監聽留言更新（讚數改變）
-        onChildChanged(commentsRef, (snapshot) => {
-            const key = snapshot.key;
-            const data = snapshot.val();
-            const countSpan = document.getElementById(`like-count-${key}`);
-            if (countSpan && data) {
-                countSpan.innerText = data.likes || 0;
-            }
-        });
-
-        // 實時監聽留言刪除
-        onChildRemoved(commentsRef, (snapshot) => {
-            const deletedElement = document.getElementById(`comment-${snapshot.key}`);
-            if (deletedElement) {
-                deletedElement.remove();
-            }
-        });
-
-        function escapeHTML(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>'"]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag] || tag));
-        }
-    </script>
-</body>
-</html>
+            if (
