@@ -21,7 +21,7 @@
         h2 { margin-top: 0; color: #333; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input[type="text"], textarea, input[type="file"] { 
+        input[type="text"], input[type="password"], textarea, input[type="file"] { 
             width: 100%; 
             padding: 10px; 
             box-sizing: border-box; 
@@ -74,6 +74,7 @@
             padding: 12px 15px; 
             margin-bottom: 12px; 
             border-radius: 0 4px 4px 0; 
+            position: relative;
         }
         .comment-header { 
             font-size: 0.9em; 
@@ -81,16 +82,18 @@
             margin-bottom: 6px; 
             display: flex; 
             justify-content: space-between; 
+            align-items: center;
         }
         .comment-author { font-weight: bold; color: #333; }
         .comment-text { margin: 0 0 10px 0; color: #444; white-space: pre-line; font-size: 15px; }
         .file-attachment img { max-width: 100%; max-height: 250px; border-radius: 4px; display: block; margin-top: 5px; }
 
-        /* 按讚按鈕樣式 */
-        .like-container {
+        /* 按鈕區塊樣式 */
+        .action-container {
             margin-top: 10px;
             display: flex;
             align-items: center;
+            gap: 10px;
         }
         .like-btn {
             background: #ffffff;
@@ -109,9 +112,21 @@
             background: #ff4757;
             color: #ffffff;
         }
-        .like-btn.liked {
-            background: #ff4757;
-            color: #ffffff;
+        
+        /* 刪除按鈕樣式 */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .delete-btn:hover {
+            color: #d9534f;
+            background-color: #fee;
         }
     </style>
 </head>
@@ -127,6 +142,10 @@
             <div class="form-group">
                 <label for="author">暱稱：</label>
                 <input type="text" id="author" placeholder="請輸入您的名字" required>
+            </div>
+            <div class="form-group">
+                <label for="password">刪除密碼（選填）：</label>
+                <input type="password" id="password" placeholder="防刪密碼（欲刪除此留言時需輸入）">
             </div>
             <div class="form-group">
                 <label for="text">留言內容：</label>
@@ -163,7 +182,7 @@
     <!-- 載入 Firebase Realtime Database -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded, onChildChanged, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, remove, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
@@ -234,6 +253,7 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const author = document.getElementById('author').value.trim();
+            const password = document.getElementById('password').value.trim();
             const text = textArea.value.trim();
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
@@ -253,13 +273,15 @@
 
                 push(commentsRef, {
                     author: author,
+                    password: password || "",
                     text: text,
                     imageUrl: imageUrl,
-                    likes: 0, // 新增按讚預設值
+                    likes: 0,
                     timestamp: new Date().toLocaleString('zh-TW', { hour12: false })
                 });
 
                 document.getElementById('author').value = '';
+                document.getElementById('password').value = '';
                 textArea.value = '';
                 fileInput.value = '';
 
@@ -272,7 +294,7 @@
             }
         });
 
-        // 處理按讚功能（使用 Transaction 確保多使用者同步正確）
+        // 處理按讚功能
         window.handleLike = function(commentKey) {
             const commentLikeRef = ref(db, `comments/${commentKey}/likes`);
             runTransaction(commentLikeRef, (currentLikes) => {
@@ -280,10 +302,39 @@
             });
         };
 
-        // 渲染留言內容
+        // 處理驗證密碼與刪除功能
+        window.handleDelete = async function(commentKey) {
+            const inputPwd = prompt("請輸入刪除密碼：");
+            if (inputPwd === null) return; // 使用者按取消
+
+            const itemRef = ref(db, `comments/${commentKey}`);
+            try {
+                const snapshot = await get(itemRef);
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const correctPwd = data.password || "";
+
+                    // 若沒有設定密碼（留空）或輸入的密碼正確，即可刪除
+                    if (inputPwd === correctPwd) {
+                        await remove(itemRef);
+                    } else {
+                        alert("❌ 密碼錯誤，無法刪除此留言！");
+                    }
+                }
+            } catch (error) {
+                alert("刪除失敗：" + error.message);
+            }
+        };
+
+        // 渲染留言 HTML 結構（完美防護相容舊資料）
         function renderComment(snapshot) {
             const data = snapshot.val();
+            if (!data) return '';
+
             const key = snapshot.key;
+            const author = data.author || '匿名';
+            const text = data.text || '';
+            const timestamp = data.timestamp || '';
             const likesCount = data.likes || 0;
 
             let imageHTML = '';
@@ -298,21 +349,26 @@
 
             return `
                 <div class="comment-header">
-                    <span class="comment-author">${escapeHTML(data.author)}</span>
-                    <span>${data.timestamp}</span>
+                    <span class="comment-author">${escapeHTML(author)}</span>
+                    <span>${timestamp}</span>
                 </div>
-                <p class="comment-text">${escapeHTML(data.text)}</p>
+                <p class="comment-text">${escapeHTML(text)}</p>
                 ${imageHTML}
-                <div class="like-container">
+                <div class="action-container">
                     <button type="button" class="like-btn" onclick="handleLike('${key}')">
                         ❤️讚 <span id="like-count-${key}">${likesCount}</span>
+                    </button>
+                    <button type="button" class="delete-btn" onclick="handleDelete('${key}')">
+                        🗑️ 刪除
                     </button>
                 </div>
             `;
         }
 
-        // 實時監聽新留言
+        // 實時監聽新留言（防重複渲染）
         onChildAdded(commentsRef, (snapshot) => {
+            if (document.getElementById(`comment-${snapshot.key}`)) return;
+
             const div = document.createElement('div');
             div.className = 'comment-item';
             div.id = `comment-${snapshot.key}`;
@@ -322,18 +378,27 @@
             header.after(div);
         });
 
-        // 實時監聽留言更新（讚數改變時即時刷新頁面數字）
+        // 實時監聽留言更新（讚數改變）
         onChildChanged(commentsRef, (snapshot) => {
             const key = snapshot.key;
             const data = snapshot.val();
             const countSpan = document.getElementById(`like-count-${key}`);
-            if (countSpan) {
+            if (countSpan && data) {
                 countSpan.innerText = data.likes || 0;
             }
         });
 
+        // 實時監聽留言刪除
+        onChildRemoved(commentsRef, (snapshot) => {
+            const deletedElement = document.getElementById(`comment-${snapshot.key}`);
+            if (deletedElement) {
+                deletedElement.remove();
+            }
+        });
+
         function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, tag => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
             }[tag] || tag));
         }
