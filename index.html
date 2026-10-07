@@ -128,6 +128,43 @@
             color: #d9534f;
             background-color: #fee;
         }
+
+        /* 🔒 密碼彈窗 CSS 樣式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 320px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .modal-box h4 { margin: 0 0 10px 0; color: #333; }
+        .modal-box input { margin-bottom: 15px; }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .modal-btn.confirm { background: #d9534f; color: white; }
+        .modal-btn.cancel { background: #ccc; color: #333; }
     </style>
 </head>
 <body>
@@ -179,13 +216,25 @@
         </div>
     </div>
 
+    <!-- 🔒 刪除密碼輸入彈窗（使用 type="password" 隱藏輸入內容） -->
+    <div id="pwdModal" class="modal-overlay">
+        <div class="modal-box">
+            <h4>請輸入刪除密碼</h4>
+            <input type="password" id="modalPwdInput" placeholder="請輸入密碼">
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn cancel" id="modalCancelBtn">取消</button>
+                <button type="button" class="modal-btn confirm" id="modalConfirmBtn">確定刪除</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 載入 Firebase Realtime Database -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, remove, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // 🔑 在此設定您的「最高管理員密碼」
-        const ADMIN_PASSWORD = "zack05120512"; 
+        const ADMIN_PASSWORD = "admin1234"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
@@ -207,6 +256,13 @@
         const commentList = document.getElementById('commentList');
         const textArea = document.getElementById('text');
         const emojiPicker = document.getElementById('emojiPicker');
+
+        // 彈窗相關元素
+        const pwdModal = document.getElementById('pwdModal');
+        const modalPwdInput = document.getElementById('modalPwdInput');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        let currentTargetKey = null; // 紀錄目前正在準備刪除的留言 Key
 
         // 表情點擊輸入邏輯
         emojiPicker.addEventListener('click', (e) => {
@@ -276,7 +332,7 @@
 
                 push(commentsRef, {
                     author: author,
-                    password: password || "", // 儲存使用者說明的刪除密碼
+                    password: password || "",
                     text: text,
                     imageUrl: imageUrl,
                     likes: 0,
@@ -297,7 +353,7 @@
             }
         });
 
-        // 處理按讚功能（使用 Transaction 確保多使用者同步正確）
+        // 處理按讚功能
         window.handleLike = function(commentKey) {
             const commentLikeRef = ref(db, `comments/${commentKey}/likes`);
             runTransaction(commentLikeRef, (currentLikes) => {
@@ -305,21 +361,38 @@
             });
         };
 
-        // 處理驗證密碼與刪除功能（支援使用者密碼與管理員密碼）
-        window.handleDelete = async function(commentKey) {
-            const inputPwd = prompt("請輸入刪除密碼（使用者設定之密碼或管理者密碼）：");
-            if (inputPwd === null) return; // 使用者按下取消
+        // 點擊「刪除」按鈕時開啟彈窗
+        window.handleDelete = function(commentKey) {
+            currentTargetKey = commentKey;
+            modalPwdInput.value = ''; // 清空上次輸入
+            pwdModal.style.display = 'flex'; // 顯示彈窗
+            modalPwdInput.focus();
+        };
 
-            const itemRef = ref(db, `comments/${commentKey}`);
+        // 關閉彈窗
+        function closeModal() {
+            pwdModal.style.display = 'none';
+            currentTargetKey = null;
+        }
+
+        modalCancelBtn.addEventListener('click', closeModal);
+
+        // 點擊「確定刪除」按鈕驗證密碼
+        modalConfirmBtn.addEventListener('click', async () => {
+            if (!currentTargetKey) return;
+
+            const inputPwd = modalPwdInput.value.trim();
+            const itemRef = ref(db, `comments/${currentTargetKey}`);
+
             try {
                 const snapshot = await get(itemRef);
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    const userPwd = data.password || ""; // 若留言者沒設定，預設為空字串
+                    const userPwd = data.password || "";
 
-                    // 只要輸入的密碼相符使用者密碼，或是符合管理者密碼，即可進行刪除
                     if (inputPwd === userPwd || inputPwd === ADMIN_PASSWORD) {
                         await remove(itemRef);
+                        closeModal();
                     } else {
                         alert("❌ 密碼錯誤，無法刪除此留言！");
                     }
@@ -327,7 +400,7 @@
             } catch (error) {
                 alert("刪除失敗：" + error.message);
             }
-        };
+        });
 
         // 渲染留言內容
         function renderComment(snapshot) {
@@ -381,7 +454,7 @@
             header.after(div);
         });
 
-        // 實時監聽留言更新（讚數改變時即時刷新頁面數字）
+        // 實時監聽留言更新
         onChildChanged(commentsRef, (snapshot) => {
             const key = snapshot.key;
             const data = snapshot.val();
@@ -391,7 +464,7 @@
             }
         });
 
-        // 實時監聽留言刪除（當有留言被刪除時自動自網頁移除）
+        // 實時監聽留言刪除
         onChildRemoved(commentsRef, (snapshot) => {
             const deletedElement = document.getElementById(`comment-${snapshot.key}`);
             if (deletedElement) {
