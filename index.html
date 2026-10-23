@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AREA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -21,7 +22,7 @@
         h2 { margin-top: 0; color: #333; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input[type="text"], input[type="password"], textarea, input[type="file"] { 
+        input[type="text"], input[type="password"], input[type="email"], textarea, input[type="file"] { 
             width: 100%; 
             padding: 10px; 
             box-sizing: border-box; 
@@ -30,6 +31,15 @@
             font-size: 14px;
         }
         textarea { height: 80px; resize: vertical; }
+
+        /* 會員驗證區塊 */
+        .auth-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
 
         /* 表情符號選擇區塊樣式 */
         .emoji-picker {
@@ -67,6 +77,20 @@
         }
         button.submit-btn:disabled { background: #aaa; cursor: not-allowed; }
         button.submit-btn:hover:not(:disabled) { background: #0056b3; }
+        
+        .auth-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .auth-btn:hover { background: #218838; }
+        .auth-btn.secondary { background: #6c757d; }
+        .auth-btn.secondary:hover { background: #5a6268; }
+
         .comment-list { margin-top: 30px; }
         .comment-item { 
             background: #f9f9f9; 
@@ -128,43 +152,6 @@
             color: #d9534f;
             background-color: #fee;
         }
-
-        /* 🔒 密碼彈窗 CSS 樣式 */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-box {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 320px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            text-align: center;
-        }
-        .modal-box h4 { margin: 0 0 10px 0; color: #333; }
-        .modal-box input { margin-bottom: 15px; }
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .modal-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .modal-btn.confirm { background: #d9534f; color: white; }
-        .modal-btn.cancel { background: #ccc; color: #333; }
     </style>
 </head>
 <body>
@@ -174,16 +161,41 @@
             <img src="IMG_20261005_171430.jpg" alt="Logo" style="max-width: 120px; height: auto;">
             <h2 style="margin-top: 10px;">LINE的pro版->AREA</h2>
         </div>
+
+        <!-- 👤 會員登入 / 註冊區塊 -->
+        <div class="auth-card" id="authCard">
+            <div id="loggedOutView">
+                <h4 style="margin: 0 0 10px 0; color: #333;" id="authTitle">會員登入</h4>
+                <div class="form-group" id="nameGroup" style="display: none;">
+                    <label for="regName">您的名字（暱稱）：</label>
+                    <input type="text" id="regName" placeholder="請輸入顯示的名字">
+                </div>
+                <div class="form-group">
+                    <label for="authEmail">電子郵件：</label>
+                    <input type="email" id="authEmail" placeholder="請輸入 Email">
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">密碼：</label>
+                    <input type="password" id="authPassword" placeholder="請輸入密碼 (至少6碼)">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" id="mainAuthBtn" class="auth-btn">登入</button>
+                    <button type="button" id="toggleAuthModeBtn" class="auth-btn secondary">切換至註冊帳號</button>
+                </div>
+            </div>
+            
+            <div id="loggedInView" style="display: none; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 13px; color: #666;">目前登入身分：</span>
+                    <strong id="userDisplayName" style="color: #007bff; display: block; font-size: 16px;"></strong>
+                    <span id="userDisplayEmail" style="font-size: 12px; color: #888;"></span>
+                </div>
+                <button type="button" id="logoutBtn" class="auth-btn secondary" style="background: #d9534f;">登出</button>
+            </div>
+        </div>
         
-        <form id="commentForm">
-            <div class="form-group">
-                <label for="author">暱稱：</label>
-                <input type="text" id="author" placeholder="請輸入您的名字" required>
-            </div>
-            <div class="form-group">
-                <label for="password">刪除密碼（選填）：</label>
-                <input type="password" id="password" placeholder="防刪密碼（欲刪除此留言時需輸入）">
-            </div>
+        <!-- 留言表單 (登入後解鎖) -->
+        <form id="commentForm" style="display: none;">
             <div class="form-group">
                 <label for="text">留言內容：</label>
                 <textarea id="text" placeholder="請寫下您的留言..." required></textarea>
@@ -211,30 +223,23 @@
             <button type="submit" id="submitBtn" class="submit-btn">發布留言</button>
         </form>
 
+        <div id="loginPrompt" style="text-align: center; color: #888; padding: 20px;">
+            請先登入會員以發表留言。
+        </div>
+
         <div class="comment-list" id="commentList">
             <h3>所有留言</h3>
         </div>
     </div>
 
-    <!-- 🔒 刪除密碼輸入彈窗（使用 type="password" 隱藏輸入內容） -->
-    <div id="pwdModal" class="modal-overlay">
-        <div class="modal-box">
-            <h4>請輸入刪除密碼</h4>
-            <input type="password" id="modalPwdInput" placeholder="請輸入密碼">
-            <div class="modal-buttons">
-                <button type="button" class="modal-btn cancel" id="modalCancelBtn">取消</button>
-                <button type="button" class="modal-btn confirm" id="modalConfirmBtn">確定刪除</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 載入 Firebase Realtime Database -->
+    <!-- 載入 Firebase Realtime Database 與 Auth -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, remove, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // 🔑 在此設定您的「最高管理員密碼」
-        const ADMIN_PASSWORD = "admin1234"; 
+        // 🔑 在此設定您的「最高管理員密碼/信箱」
+        const ADMIN_EMAIL = "admin@example.com"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
@@ -249,6 +254,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const auth = getAuth(app);
         const commentsRef = ref(db, 'comments');
 
         const form = document.getElementById('commentForm');
@@ -257,12 +263,101 @@
         const textArea = document.getElementById('text');
         const emojiPicker = document.getElementById('emojiPicker');
 
-        // 彈窗相關元素
-        const pwdModal = document.getElementById('pwdModal');
-        const modalPwdInput = document.getElementById('modalPwdInput');
-        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        let currentTargetKey = null; // 紀錄目前正在準備刪除的留言 Key
+        // 會員UI元素
+        const loggedOutView = document.getElementById('loggedOutView');
+        const loggedInView = document.getElementById('loggedInView');
+        const commentForm = document.getElementById('commentForm');
+        const loginPrompt = document.getElementById('loginPrompt');
+        const authTitle = document.getElementById('authTitle');
+        const nameGroup = document.getElementById('nameGroup');
+        const regName = document.getElementById('regName');
+        const authEmail = document.getElementById('authEmail');
+        const authPassword = document.getElementById('authPassword');
+        const mainAuthBtn = document.getElementById('mainAuthBtn');
+        const toggleAuthModeBtn = document.getElementById('toggleAuthModeBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const userDisplayEmail = document.getElementById('userDisplayEmail');
+
+        let isRegisterMode = false;
+        let currentUser = null;
+
+        // 切換登入與註冊模式
+        toggleAuthModeBtn.addEventListener('click', () => {
+            isRegisterMode = !isRegisterMode;
+            if (isRegisterMode) {
+                authTitle.innerText = "註冊新帳號";
+                nameGroup.style.display = "block";
+                mainAuthBtn.innerText = "註冊";
+                toggleAuthModeBtn.innerText = "切換至會員登入";
+            } else {
+                authTitle.innerText = "會員登入";
+                nameGroup.style.display = "none";
+                mainAuthBtn.innerText = "登入";
+                toggleAuthModeBtn.innerText = "切換至註冊帳號";
+            }
+        });
+
+        // 登入或註冊按鈕事件
+        mainAuthBtn.addEventListener('click', async () => {
+            const email = authEmail.value.trim();
+            const password = authPassword.value;
+            const name = regName.value.trim();
+
+            if (!email || !password) {
+                alert("請填寫電子郵件與密碼！");
+                return;
+            }
+
+            try {
+                if (isRegisterMode) {
+                    if (!name) {
+                        alert("註冊時請填寫您的名字！");
+                        return;
+                    }
+                    // 執行註冊
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    // 設定使用者顯示名稱
+                    await updateProfile(userCredential.user, { displayName: name });
+                    alert("🎉 註冊成功並已自動登入！");
+                } else {
+                    // 執行登入
+                    await signInWithEmailAndPassword(auth, email, password);
+                    alert("👋 登入成功！");
+                }
+                authEmail.value = '';
+                authPassword.value = '';
+                regName.value = '';
+            } catch (error) {
+                alert("操作失敗：" + error.message);
+            }
+        });
+
+        // 登出按鈕
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                alert("已成功登出。");
+            });
+        });
+
+        // 監聽 Firebase 登入狀態變化
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                loggedOutView.style.display = 'none';
+                loggedInView.style.display = 'flex';
+                commentForm.style.display = 'block';
+                loginPrompt.style.display = 'none';
+
+                userDisplayName.innerText = user.displayName || "未命名會員";
+                userDisplayEmail.innerText = user.email;
+            } else {
+                loggedOutView.style.display = 'block';
+                loggedInView.style.display = 'none';
+                commentForm.style.display = 'none';
+                loginPrompt.style.display = 'block';
+            }
+        });
 
         // 表情點擊輸入邏輯
         emojiPicker.addEventListener('click', (e) => {
@@ -311,13 +406,16 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const author = document.getElementById('author').value.trim();
-            const password = document.getElementById('password').value.trim();
+            if (!currentUser) {
+                alert("請先登入才能發布留言！");
+                return;
+            }
+
             const text = textArea.value.trim();
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
 
-            if (!author || !text) return;
+            if (!text) return;
 
             submitBtn.disabled = true;
             submitBtn.innerText = "處理中...";
@@ -331,16 +429,15 @@
                 }
 
                 push(commentsRef, {
-                    author: author,
-                    password: password || "",
+                    uid: currentUser.uid,
+                    author: currentUser.displayName || "匿名會員",
+                    email: currentUser.email,
                     text: text,
                     imageUrl: imageUrl,
                     likes: 0,
                     timestamp: new Date().toLocaleString('zh-TW', { hour12: false })
                 });
 
-                document.getElementById('author').value = '';
-                document.getElementById('password').value = '';
                 textArea.value = '';
                 fileInput.value = '';
 
@@ -361,46 +458,31 @@
             });
         };
 
-        // 點擊「刪除」按鈕時開啟彈窗
-        window.handleDelete = function(commentKey) {
-            currentTargetKey = commentKey;
-            modalPwdInput.value = ''; // 清空上次輸入
-            pwdModal.style.display = 'flex'; // 顯示彈窗
-            modalPwdInput.focus();
-        };
-
-        // 關閉彈窗
-        function closeModal() {
-            pwdModal.style.display = 'none';
-            currentTargetKey = null;
-        }
-
-        modalCancelBtn.addEventListener('click', closeModal);
-
-        // 點擊「確定刪除」按鈕驗證密碼
-        modalConfirmBtn.addEventListener('click', async () => {
-            if (!currentTargetKey) return;
-
-            const inputPwd = modalPwdInput.value.trim();
-            const itemRef = ref(db, `comments/${currentTargetKey}`);
-
-            try {
-                const snapshot = await get(itemRef);
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    const userPwd = data.password || "";
-
-                    if (inputPwd === userPwd || inputPwd === ADMIN_PASSWORD) {
-                        await remove(itemRef);
-                        closeModal();
-                    } else {
-                        alert("❌ 密碼錯誤，無法刪除此留言！");
-                    }
-                }
-            } catch (error) {
-                alert("刪除失敗：" + error.message);
+        // 刪除留言功能 (本人或管理員可刪)
+        window.handleDelete = async function(commentKey, commentUid) {
+            if (!currentUser) {
+                alert("請先登入！");
+                return;
             }
-        });
+
+            // 檢查是否為本人或管理員
+            const isOwner = currentUser.uid === commentUid;
+            const isAdmin = currentUser.email === ADMIN_EMAIL;
+
+            if (!isOwner && !isAdmin) {
+                alert("❌ 您沒有權限刪除這則留言！");
+                return;
+            }
+
+            if (confirm("確定要刪除這則留言嗎？")) {
+                try {
+                    const itemRef = ref(db, `comments/${commentKey}`);
+                    await remove(itemRef);
+                } catch (error) {
+                    alert("刪除失敗：" + error.message);
+                }
+            }
+        };
 
         // 渲染留言內容
         function renderComment(snapshot) {
@@ -412,6 +494,7 @@
             const text = data.text || '';
             const timestamp = data.timestamp || '';
             const likesCount = data.likes || 0;
+            const commentUid = data.uid || '';
 
             let imageHTML = '';
             if (data.imageUrl) {
@@ -434,7 +517,7 @@
                     <button type="button" class="like-btn" onclick="handleLike('${key}')">
                         ❤️讚 <span id="like-count-${key}">${likesCount}</span>
                     </button>
-                    <button type="button" class="delete-btn" onclick="handleDelete('${key}')">
+                    <button type="button" class="delete-btn" onclick="handleDelete('${key}', '${commentUid}')">
                         🗑️ 刪除
                     </button>
                 </div>
