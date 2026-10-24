@@ -518,7 +518,7 @@
                 loginPrompt.style.display = 'none';
 
                 const isAdmin = user.email === ADMIN_EMAIL;
-                const badgeHTML = isAdmin ? `<span class="admin-badge">👑 版主</span>` : '';
+                const badgeHTML = isAdmin ? `<span class="admin-badge">👑 管理員</span>` : '';
 
                 userDisplayName.innerHTML = `${escapeHTML(user.displayName || "未命名會員")} ${badgeHTML}`;
                 userDisplayEmail.innerText = user.email;
