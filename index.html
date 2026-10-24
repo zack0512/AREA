@@ -100,6 +100,41 @@
             border-radius: 0 4px 4px 0; 
             position: relative;
         }
+
+        /* 💬 二級留言 / 樓中樓縮排樣式 */
+        .reply-item {
+            margin-left: 20px;
+            border-left: 3px solid #6c757d;
+            background: #ffffff;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 引用背景區塊 */
+        .quote-box {
+            background: #eef2f7;
+            border-left: 3px solid #007bff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        /* 引用提示標籤 */
+        .reply-banner {
+            background: #e7f1ff;
+            border: 1px solid #b6d4fe;
+            color: #084298;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .comment-header { 
             font-size: 0.9em; 
             color: #666; 
@@ -145,7 +180,8 @@
             margin-top: 10px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .like-btn {
             background: #ffffff;
@@ -165,7 +201,7 @@
             color: #ffffff;
         }
         
-        .edit-btn, .delete-btn {
+        .reply-btn, .edit-btn, .delete-btn {
             background: none;
             border: none;
             cursor: pointer;
@@ -174,6 +210,8 @@
             border-radius: 4px;
             transition: all 0.2s;
         }
+        .reply-btn { color: #28a745; }
+        .reply-btn:hover { background-color: #e6f4ea; }
         .edit-btn { color: #007bff; }
         .edit-btn:hover { background-color: #e7f1ff; }
         .delete-btn { color: #888; }
@@ -300,6 +338,12 @@
         
         <!-- 留言表單 (登入後解鎖) -->
         <form id="commentForm" style="display: none;">
+            <!-- ↩️ 引用回覆提示條 -->
+            <div id="replyBanner" class="reply-banner" style="display: none;">
+                <span>正在回覆：<strong id="replyAuthorName"></strong></span>
+                <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#084298; cursor:pointer; font-weight:bold;">✕ 取消</button>
+            </div>
+
             <div class="form-group">
                 <label for="text">留言內容：</label>
                 <textarea id="text" placeholder="請寫下您的留言..." required></textarea>
@@ -336,7 +380,7 @@
         </div>
     </div>
 
-    <!-- 🔒 管理員 / 驗證彈窗 (用於修改/刪除其他人的留言) -->
+    <!-- 🔒 管理員 / 驗證彈窗 -->
     <div id="actionModal" class="modal-overlay">
         <div class="modal-box">
             <h4 id="modalTitle">驗證管理員密碼</h4>
@@ -413,6 +457,11 @@
         const userDisplayName = document.getElementById('userDisplayName');
         const userDisplayEmail = document.getElementById('userDisplayEmail');
 
+        // 引用回覆 UI
+        const replyBanner = document.getElementById('replyBanner');
+        const replyAuthorName = document.getElementById('replyAuthorName');
+        let currentReplyTarget = null; // 記錄被回覆的資料 { parentKey, author, text }
+
         // 彈窗UI元素
         const actionModal = document.getElementById('actionModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -435,7 +484,7 @@
         let currentActionType = null; 
         let currentActionKey = null;
 
-        // Lightbox 開啟與關閉函式
+        // Lightbox 開啟與關閉
         window.openLightbox = function(src) {
             lightboxImg.src = src;
             lightbox.style.display = 'flex';
@@ -456,7 +505,29 @@
             }
         });
 
-        // 切換登入與註冊模式
+        // 設定準備回覆某則留言
+        window.startReply = function(key, author, textSnippet) {
+            if (!currentUser) {
+                alert("請先登入才能回覆！");
+                return;
+            }
+            currentReplyTarget = {
+                parentKey: key,
+                author: author,
+                snippet: textSnippet.length > 30 ? textSnippet.substring(0, 30) + '...' : textSnippet
+            };
+            replyAuthorName.innerText = `${author}（「${currentReplyTarget.snippet}」）`;
+            replyBanner.style.display = 'flex';
+            textArea.focus();
+            commentForm.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        // 取消引用回覆
+        window.cancelReplyTarget = function() {
+            currentReplyTarget = null;
+            replyBanner.style.display = 'none';
+        };
+
         toggleAuthModeBtn.addEventListener('click', () => {
             isRegisterMode = !isRegisterMode;
             if (isRegisterMode) {
@@ -598,7 +669,8 @@
                     imageUrl = await compressAndConvertImage(file);
                 }
 
-                push(commentsRef, {
+                // 組合發布的資料，包含被回覆貼文的引用資訊
+                const postData = {
                     uid: currentUser.uid,
                     author: currentUser.displayName || "匿名會員",
                     email: currentUser.email,
@@ -606,10 +678,19 @@
                     imageUrl: imageUrl,
                     likes: 0,
                     timestamp: new Date().toLocaleString('zh-TW', { hour12: false })
-                });
+                };
+
+                if (currentReplyTarget) {
+                    postData.parentKey = currentReplyTarget.parentKey;
+                    postData.replyToAuthor = currentReplyTarget.author;
+                    postData.replyToSnippet = currentReplyTarget.snippet;
+                }
+
+                push(commentsRef, postData);
 
                 textArea.value = '';
                 fileInput.value = '';
+                cancelReplyTarget();
 
             } catch (error) {
                 console.error("發布失敗：", error);
@@ -627,7 +708,6 @@
             });
         };
 
-        // 點擊「刪除」按鈕
         window.handleDelete = function(commentKey, commentUid) {
             if (!currentUser) {
                 alert("請先登入！");
@@ -654,7 +734,6 @@
             }
         };
 
-        // 點擊「修改」按鈕
         window.handleEdit = async function(commentKey, commentUid) {
             if (!currentUser) {
                 alert("請先登入！");
@@ -748,6 +827,15 @@
             const isAdminPost = email === ADMIN_EMAIL;
             const badgeHTML = isAdminPost ? `<span class="admin-badge">👑 版主</span>` : '';
 
+            // 引用區塊渲染
+            let quoteHTML = '';
+            if (data.replyToAuthor) {
+                quoteHTML = `
+                    <div class="quote-box">
+                        <strong>引用 @${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}
+                    </div>`;
+            }
+
             let imageHTML = '';
             if (data.imageUrl) {
                 imageHTML = `
@@ -761,11 +849,15 @@
                     <span class="comment-author">${escapeHTML(author)} ${badgeHTML}</span>
                     <span>${timestamp}</span>
                 </div>
+                ${quoteHTML}
                 <p class="comment-text" id="text-${key}">${escapeHTML(text)}</p>
                 ${imageHTML}
                 <div class="action-container">
                     <button type="button" class="like-btn" onclick="handleLike('${key}')">
                         ❤️讚 <span id="like-count-${key}">${likesCount}</span>
+                    </button>
+                    <button type="button" class="reply-btn" onclick="startReply('${key}', '${escapeHTML(author)}', '${escapeHTML(text)}')">
+                        ↩️ 回覆
                     </button>
                     <button type="button" class="edit-btn" onclick="handleEdit('${key}', '${commentUid}')">
                         ✏️ 修改
@@ -778,15 +870,31 @@
         }
 
         onChildAdded(commentsRef, (snapshot) => {
-            if (document.getElementById(`comment-${snapshot.key}`)) return;
+            const key = snapshot.key;
+            if (document.getElementById(`comment-${key}`)) return;
 
+            const data = snapshot.val();
             const div = document.createElement('div');
-            div.className = 'comment-item';
-            div.id = `comment-${snapshot.key}`;
-            div.innerHTML = renderComment(snapshot);
             
-            const header = commentList.querySelector('h3');
-            header.after(div);
+            // 判斷是否為樓中樓 (二級留言)
+            const isReply = !!data.parentKey;
+            div.className = isReply ? 'comment-item reply-item' : 'comment-item';
+            div.id = `comment-${key}`;
+            div.innerHTML = renderComment(snapshot);
+
+            // 若是樓中樓則渲染在主貼文下方，否則插入列表頂端
+            if (isReply) {
+                const parentEl = document.getElementById(`comment-${data.parentKey}`);
+                if (parentEl) {
+                    parentEl.after(div);
+                } else {
+                    const header = commentList.querySelector('h3');
+                    header.after(div);
+                }
+            } else {
+                const header = commentList.querySelector('h3');
+                header.after(div);
+            }
         });
 
         onChildChanged(commentsRef, (snapshot) => {
