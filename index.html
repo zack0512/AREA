@@ -108,9 +108,23 @@
             justify-content: space-between; 
             align-items: center;
         }
-        .comment-author { font-weight: bold; color: #333; }
+        .comment-author { font-weight: bold; color: #333; display: flex; items-center; gap: 6px; }
         .comment-text { margin: 0 0 10px 0; color: #444; white-space: pre-line; font-size: 15px; }
         .file-attachment img { max-width: 100%; max-height: 250px; border-radius: 4px; display: block; margin-top: 5px; }
+
+        /* 管理員徽章樣式 */
+        .admin-badge {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
 
         /* 按鈕區塊樣式 */
         .action-container {
@@ -151,7 +165,7 @@
         .delete-btn { color: #888; }
         .delete-btn:hover { color: #d9534f; background-color: #fee; }
 
-        /* 🔒 密碼/動作彈窗 CSS 樣式 */
+        /* 🔒 管理員/驗證彈窗 CSS 樣式 */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -222,7 +236,7 @@
             <div id="loggedInView" style="display: none; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <span style="font-size: 13px; color: #666;">目前登入身分：</span>
-                    <strong id="userDisplayName" style="color: #007bff; display: block; font-size: 16px;"></strong>
+                    <strong id="userDisplayName" style="color: #007bff; display: flex; align-items: center; gap: 5px; font-size: 16px;"></strong>
                     <span id="userDisplayEmail" style="font-size: 12px; color: #888;"></span>
                 </div>
                 <button type="button" id="logoutBtn" class="auth-btn secondary" style="background: #d9534f;">登出</button>
@@ -267,7 +281,7 @@
         </div>
     </div>
 
-    <!-- 🔒 管理員 / 驗證彈窗 (用於刪除或修改任意留言) -->
+    <!-- 🔒 管理員 / 驗證彈窗 (用於修改/刪除其他人的留言) -->
     <div id="actionModal" class="modal-overlay">
         <div class="modal-box">
             <h4 id="modalTitle">驗證管理員密碼</h4>
@@ -278,8 +292,8 @@
                 <textarea id="modalEditText" style="height: 100px;"></textarea>
             </div>
 
-            <div style="text-align:left;">
-                <label style="font-size:12px; font-weight:bold; color:#555;">請輸入管理員密碼（或您的身份確認）：</label>
+            <div id="passwordInputGroup" style="text-align:left;">
+                <label style="font-size:12px; font-weight:bold; color:#555;">請輸入管理員密碼：</label>
                 <input type="password" id="modalPasswordInput" placeholder="請輸入管理員密碼">
             </div>
 
@@ -296,7 +310,8 @@
         import { getDatabase, ref, push, remove, update, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // 🔑 在此設定您的「最高管理員密碼」
+        // 🔑 專屬最高管理員信箱與預設密碼
+        const ADMIN_EMAIL = "11550252@tajh.tp.edu.tw"; 
         const ADMIN_PASSWORD = "admin1234"; 
 
         const firebaseConfig = {
@@ -342,6 +357,7 @@
         const modalTitle = document.getElementById('modalTitle');
         const modalDesc = document.getElementById('modalDesc');
         const editContentContainer = document.getElementById('editContentContainer');
+        const passwordInputGroup = document.getElementById('passwordInputGroup');
         const modalEditText = document.getElementById('modalEditText');
         const modalPasswordInput = document.getElementById('modalPasswordInput');
         const modalConfirmBtn = document.getElementById('modalConfirmBtn');
@@ -350,7 +366,6 @@
         let isRegisterMode = false;
         let currentUser = null;
 
-        // 當前互動的狀態：'delete' 或 'edit'
         let currentActionType = null; 
         let currentActionKey = null;
 
@@ -415,7 +430,10 @@
                 commentForm.style.display = 'block';
                 loginPrompt.style.display = 'none';
 
-                userDisplayName.innerText = user.displayName || "未命名會員";
+                const isAdmin = user.email === ADMIN_EMAIL;
+                const badgeHTML = isAdmin ? `<span class="admin-badge">👑 版主</span>` : '';
+
+                userDisplayName.innerHTML = `${escapeHTML(user.displayName || "未命名會員")} ${badgeHTML}`;
                 userDisplayEmail.innerText = user.email;
             } else {
                 loggedOutView.style.display = 'block';
@@ -532,16 +550,17 @@
             currentActionKey = commentKey;
 
             const isOwner = currentUser.uid === commentUid;
-            if (isOwner) {
-                // 本人直接刪除不需要密碼
+            const isAdmin = currentUser.email === ADMIN_EMAIL;
+
+            if (isOwner || isAdmin) {
                 if (confirm("確定要刪除這則留言嗎？")) {
                     executeDelete(commentKey);
                 }
             } else {
-                // 非本人跳出彈窗要求管理員密碼
                 modalTitle.innerText = "管理員權限：刪除留言";
-                modalDesc.innerText = "這是其他會員的貼文，請輸入管理員密碼以強制刪除。";
+                modalDesc.innerText = "這是其他會員的貼文，請輸入管理員密碼以進行刪除。";
                 editContentContainer.style.display = 'none';
+                passwordInputGroup.style.display = 'block';
                 modalPasswordInput.value = '';
                 actionModal.style.display = 'flex';
                 modalPasswordInput.focus();
@@ -557,7 +576,6 @@
             currentActionType = 'edit';
             currentActionKey = commentKey;
 
-            // 取得原本的文字內容
             const snap = await get(ref(db, `comments/${commentKey}`));
             if (!snap.exists()) return;
             const data = snap.val();
@@ -565,21 +583,20 @@
             modalEditText.value = data.text || '';
 
             const isOwner = currentUser.uid === commentUid;
-            if (isOwner) {
-                // 本人修改：不強制要求輸入管理員密碼，直接修改
+            const isAdmin = currentUser.email === ADMIN_EMAIL;
+
+            if (isOwner || isAdmin) {
                 modalTitle.innerText = "修改貼文內容";
-                modalDesc.innerText = "您可以直接編輯並更新您的留言內容。";
+                modalDesc.innerText = isAdmin && !isOwner ? "您正在以【管理員身份】進行修改。" : "您可以更新您的留言內容。";
                 editContentContainer.style.display = 'block';
-                modalPasswordInput.value = ADMIN_PASSWORD; // 自動帶入略過驗證或設為隱藏
-                document.getElementById('modalPasswordInput').parentElement.style.display = 'none';
+                passwordInputGroup.style.display = 'none';
                 actionModal.style.display = 'flex';
                 modalEditText.focus();
             } else {
-                // 非本人修改：必須輸入管理員密碼
                 modalTitle.innerText = "管理員權限：修改任意留言";
                 modalDesc.innerText = "這是其他會員的貼文，請輸入管理員密碼以進行修改。";
                 editContentContainer.style.display = 'block';
-                document.getElementById('modalPasswordInput').parentElement.style.display = 'block';
+                passwordInputGroup.style.display = 'block';
                 modalPasswordInput.value = '';
                 actionModal.style.display = 'flex';
                 modalEditText.focus();
@@ -591,19 +608,18 @@
             currentActionKey = null;
         });
 
-        // 彈窗確認執行
         modalConfirmBtn.addEventListener('click', async () => {
             if (!currentActionKey) return;
 
-            const inputPwd = modalPasswordInput.value.trim();
             const snap = await get(ref(db, `comments/${currentActionKey}`));
             if (!snap.exists()) return;
             const data = snap.val();
 
             const isOwner = currentUser.uid === data.uid;
+            const isAdmin = currentUser.email === ADMIN_EMAIL;
+            const inputPwd = modalPasswordInput.value.trim();
 
-            // 檢查權限：若是本人或是輸入了正確的管理員密碼
-            if (isOwner || inputPwd === ADMIN_PASSWORD) {
+            if (isOwner || isAdmin || inputPwd === ADMIN_PASSWORD) {
                 if (currentActionType === 'delete') {
                     await executeDelete(currentActionKey);
                 } else if (currentActionType === 'edit') {
@@ -636,10 +652,15 @@
 
             const key = snapshot.key;
             const author = data.author || '匿名';
+            const email = data.email || '';
             const text = data.text || '';
             const timestamp = data.timestamp || '';
             const likesCount = data.likes || 0;
             const commentUid = data.uid || '';
+
+            // 自動為管理員貼文加上👑版主徽章
+            const isAdminPost = email === ADMIN_EMAIL;
+            const badgeHTML = isAdminPost ? `<span class="admin-badge">👑 版主</span>` : '';
 
             let imageHTML = '';
             if (data.imageUrl) {
@@ -653,7 +674,7 @@
 
             return `
                 <div class="comment-header">
-                    <span class="comment-author">${escapeHTML(author)}</span>
+                    <span class="comment-author">${escapeHTML(author)} ${badgeHTML}</span>
                     <span>${timestamp}</span>
                 </div>
                 <p class="comment-text" id="text-${key}">${escapeHTML(text)}</p>
