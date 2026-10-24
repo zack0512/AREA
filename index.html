@@ -137,21 +137,56 @@
             color: #ffffff;
         }
         
-        /* 刪除按鈕樣式 */
-        .delete-btn {
+        .edit-btn, .delete-btn {
             background: none;
             border: none;
-            color: #888;
             cursor: pointer;
             font-size: 13px;
             padding: 4px 8px;
             border-radius: 4px;
             transition: all 0.2s;
         }
-        .delete-btn:hover {
-            color: #d9534f;
-            background-color: #fee;
+        .edit-btn { color: #007bff; }
+        .edit-btn:hover { background-color: #e7f1ff; }
+        .delete-btn { color: #888; }
+        .delete-btn:hover { color: #d9534f; background-color: #fee; }
+
+        /* 🔒 密碼/動作彈窗 CSS 樣式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .modal-box h4 { margin: 0 0 10px 0; color: #333; }
+        .modal-box input, .modal-box textarea { margin-bottom: 15px; width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .modal-btn.confirm { background: #007bff; color: white; }
+        .modal-btn.cancel { background: #ccc; color: #333; }
     </style>
 </head>
 <body>
@@ -232,14 +267,37 @@
         </div>
     </div>
 
+    <!-- 🔒 管理員 / 驗證彈窗 (用於刪除或修改任意留言) -->
+    <div id="actionModal" class="modal-overlay">
+        <div class="modal-box">
+            <h4 id="modalTitle">驗證管理員密碼</h4>
+            <p id="modalDesc" style="font-size: 12px; color: #666; margin-bottom: 10px;">非本人貼文需輸入管理員密碼才能操作</p>
+            
+            <div id="editContentContainer" style="display:none; text-align:left;">
+                <label style="font-size:12px; font-weight:bold; color:#555;">修改留言內容：</label>
+                <textarea id="modalEditText" style="height: 100px;"></textarea>
+            </div>
+
+            <div style="text-align:left;">
+                <label style="font-size:12px; font-weight:bold; color:#555;">請輸入管理員密碼（或您的身份確認）：</label>
+                <input type="password" id="modalPasswordInput" placeholder="請輸入管理員密碼">
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn cancel" id="modalCancelBtn">取消</button>
+                <button type="button" class="modal-btn confirm" id="modalConfirmBtn">確定執行</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 載入 Firebase Realtime Database 與 Auth -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, remove, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, remove, update, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // 🔑 在此設定您的「最高管理員密碼/信箱」
-        const ADMIN_EMAIL = "admin@example.com"; 
+        // 🔑 在此設定您的「最高管理員密碼」
+        const ADMIN_PASSWORD = "admin1234"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
@@ -279,8 +337,22 @@
         const userDisplayName = document.getElementById('userDisplayName');
         const userDisplayEmail = document.getElementById('userDisplayEmail');
 
+        // 彈窗UI元素
+        const actionModal = document.getElementById('actionModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+        const editContentContainer = document.getElementById('editContentContainer');
+        const modalEditText = document.getElementById('modalEditText');
+        const modalPasswordInput = document.getElementById('modalPasswordInput');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+
         let isRegisterMode = false;
         let currentUser = null;
+
+        // 當前互動的狀態：'delete' 或 'edit'
+        let currentActionType = null; 
+        let currentActionKey = null;
 
         // 切換登入與註冊模式
         toggleAuthModeBtn.addEventListener('click', () => {
@@ -298,7 +370,6 @@
             }
         });
 
-        // 登入或註冊按鈕事件
         mainAuthBtn.addEventListener('click', async () => {
             const email = authEmail.value.trim();
             const password = authPassword.value;
@@ -315,13 +386,10 @@
                         alert("註冊時請填寫您的名字！");
                         return;
                     }
-                    // 執行註冊
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    // 設定使用者顯示名稱
                     await updateProfile(userCredential.user, { displayName: name });
                     alert("🎉 註冊成功並已自動登入！");
                 } else {
-                    // 執行登入
                     await signInWithEmailAndPassword(auth, email, password);
                     alert("👋 登入成功！");
                 }
@@ -333,14 +401,12 @@
             }
         });
 
-        // 登出按鈕
         logoutBtn.addEventListener('click', () => {
             signOut(auth).then(() => {
                 alert("已成功登出。");
             });
         });
 
-        // 監聽 Firebase 登入狀態變化
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (user) {
@@ -373,7 +439,6 @@
             }
         });
 
-        // 圖片壓縮為 Base64
         function compressAndConvertImage(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -450,7 +515,6 @@
             }
         });
 
-        // 處理按讚功能
         window.handleLike = function(commentKey) {
             const commentLikeRef = ref(db, `comments/${commentKey}/likes`);
             runTransaction(commentLikeRef, (currentLikes) => {
@@ -458,33 +522,114 @@
             });
         };
 
-        // 刪除留言功能 (本人或管理員可刪)
-        window.handleDelete = async function(commentKey, commentUid) {
+        // 點擊「刪除」按鈕
+        window.handleDelete = function(commentKey, commentUid) {
             if (!currentUser) {
                 alert("請先登入！");
                 return;
             }
+            currentActionType = 'delete';
+            currentActionKey = commentKey;
 
-            // 檢查是否為本人或管理員
             const isOwner = currentUser.uid === commentUid;
-            const isAdmin = currentUser.email === ADMIN_EMAIL;
-
-            if (!isOwner && !isAdmin) {
-                alert("❌ 您沒有權限刪除這則留言！");
-                return;
-            }
-
-            if (confirm("確定要刪除這則留言嗎？")) {
-                try {
-                    const itemRef = ref(db, `comments/${commentKey}`);
-                    await remove(itemRef);
-                } catch (error) {
-                    alert("刪除失敗：" + error.message);
+            if (isOwner) {
+                // 本人直接刪除不需要密碼
+                if (confirm("確定要刪除這則留言嗎？")) {
+                    executeDelete(commentKey);
                 }
+            } else {
+                // 非本人跳出彈窗要求管理員密碼
+                modalTitle.innerText = "管理員權限：刪除留言";
+                modalDesc.innerText = "這是其他會員的貼文，請輸入管理員密碼以強制刪除。";
+                editContentContainer.style.display = 'none';
+                modalPasswordInput.value = '';
+                actionModal.style.display = 'flex';
+                modalPasswordInput.focus();
             }
         };
 
-        // 渲染留言內容
+        // 點擊「修改」按鈕
+        window.handleEdit = async function(commentKey, commentUid) {
+            if (!currentUser) {
+                alert("請先登入！");
+                return;
+            }
+            currentActionType = 'edit';
+            currentActionKey = commentKey;
+
+            // 取得原本的文字內容
+            const snap = await get(ref(db, `comments/${commentKey}`));
+            if (!snap.exists()) return;
+            const data = snap.val();
+
+            modalEditText.value = data.text || '';
+
+            const isOwner = currentUser.uid === commentUid;
+            if (isOwner) {
+                // 本人修改：不強制要求輸入管理員密碼，直接修改
+                modalTitle.innerText = "修改貼文內容";
+                modalDesc.innerText = "您可以直接編輯並更新您的留言內容。";
+                editContentContainer.style.display = 'block';
+                modalPasswordInput.value = ADMIN_PASSWORD; // 自動帶入略過驗證或設為隱藏
+                document.getElementById('modalPasswordInput').parentElement.style.display = 'none';
+                actionModal.style.display = 'flex';
+                modalEditText.focus();
+            } else {
+                // 非本人修改：必須輸入管理員密碼
+                modalTitle.innerText = "管理員權限：修改任意留言";
+                modalDesc.innerText = "這是其他會員的貼文，請輸入管理員密碼以進行修改。";
+                editContentContainer.style.display = 'block';
+                document.getElementById('modalPasswordInput').parentElement.style.display = 'block';
+                modalPasswordInput.value = '';
+                actionModal.style.display = 'flex';
+                modalEditText.focus();
+            }
+        };
+
+        modalCancelBtn.addEventListener('click', () => {
+            actionModal.style.display = 'none';
+            currentActionKey = null;
+        });
+
+        // 彈窗確認執行
+        modalConfirmBtn.addEventListener('click', async () => {
+            if (!currentActionKey) return;
+
+            const inputPwd = modalPasswordInput.value.trim();
+            const snap = await get(ref(db, `comments/${currentActionKey}`));
+            if (!snap.exists()) return;
+            const data = snap.val();
+
+            const isOwner = currentUser.uid === data.uid;
+
+            // 檢查權限：若是本人或是輸入了正確的管理員密碼
+            if (isOwner || inputPwd === ADMIN_PASSWORD) {
+                if (currentActionType === 'delete') {
+                    await executeDelete(currentActionKey);
+                } else if (currentActionType === 'edit') {
+                    const newText = modalEditText.value.trim();
+                    if (!newText) {
+                        alert("留言內容不能為空！");
+                        return;
+                    }
+                    await update(ref(db, `comments/${currentActionKey}`), { text: newText });
+                    alert("✅ 留言已成功修改！");
+                    actionModal.style.display = 'none';
+                }
+            } else {
+                alert("❌ 管理員密碼錯誤，無法執行此操作！");
+            }
+        });
+
+        async function executeDelete(key) {
+            try {
+                await remove(ref(db, `comments/${key}`));
+                actionModal.style.display = 'none';
+            } catch (error) {
+                alert("刪除失敗：" + error.message);
+            }
+        }
+
         function renderComment(snapshot) {
             const data = snapshot.val();
             if (!data) return '';
@@ -511,11 +656,14 @@
                     <span class="comment-author">${escapeHTML(author)}</span>
                     <span>${timestamp}</span>
                 </div>
-                <p class="comment-text">${escapeHTML(text)}</p>
+                <p class="comment-text" id="text-${key}">${escapeHTML(text)}</p>
                 ${imageHTML}
                 <div class="action-container">
                     <button type="button" class="like-btn" onclick="handleLike('${key}')">
                         ❤️讚 <span id="like-count-${key}">${likesCount}</span>
+                    </button>
+                    <button type="button" class="edit-btn" onclick="handleEdit('${key}', '${commentUid}')">
+                        ✏️ 修改
                     </button>
                     <button type="button" class="delete-btn" onclick="handleDelete('${key}', '${commentUid}')">
                         🗑️ 刪除
@@ -524,7 +672,6 @@
             `;
         }
 
-        // 實時監聽新留言
         onChildAdded(commentsRef, (snapshot) => {
             if (document.getElementById(`comment-${snapshot.key}`)) return;
 
@@ -537,17 +684,19 @@
             header.after(div);
         });
 
-        // 實時監聽留言更新
         onChildChanged(commentsRef, (snapshot) => {
             const key = snapshot.key;
             const data = snapshot.val();
             const countSpan = document.getElementById(`like-count-${key}`);
+            const textP = document.getElementById(`text-${key}`);
             if (countSpan && data) {
                 countSpan.innerText = data.likes || 0;
             }
+            if (textP && data) {
+                textP.innerText = data.text || '';
+            }
         });
 
-        // 實時監聽留言刪除
         onChildRemoved(commentsRef, (snapshot) => {
             const deletedElement = document.getElementById(`comment-${snapshot.key}`);
             if (deletedElement) {
