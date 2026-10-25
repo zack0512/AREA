@@ -560,7 +560,7 @@
 
         let isRegisterMode = false;
         let currentUser = null;
-        let onlineCount = 1; // 預設線上人數
+        let onlineCount = 1; 
 
         let currentActionType = null; 
         let currentActionKey = null;
@@ -995,6 +995,7 @@
             const div = document.createElement('div');
             div.innerHTML = renderComment(snapshot);
             
+            // 最新訊息永遠在最下方，並自動滾動到底部
             commentList.appendChild(div.firstElementChild);
             commentList.scrollTop = commentList.scrollHeight;
         });
