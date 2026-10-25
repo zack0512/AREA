@@ -157,6 +157,34 @@
         }
         .file-attachment img:hover { transform: scale(1.02); }
 
+        .file-attachment video {
+            max-width: 100%;
+            max-height: 220px;
+            border-radius: 10px;
+            display: block;
+            margin-top: 6px;
+        }
+
+        /* 一般檔案下載卡片樣式 */
+        .doc-card {
+            background: #f1f3f5;
+            border: 1px solid #dcdcdc;
+            padding: 10px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 6px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.2s;
+        }
+        .doc-card:hover { background: #e9ecef; }
+        .doc-icon { font-size: 24px; }
+        .doc-info { overflow: hidden; }
+        .doc-name { font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .doc-size { font-size: 11px; color: #666; }
+
         .admin-badge {
             background: linear-gradient(135deg, #ff4757, #ff6b81);
             color: white;
@@ -199,7 +227,6 @@
             gap: 8px;
         }
 
-        /* LINE 風格 + 號按鈕 */
         .line-plus-btn {
             width: 36px;
             height: 36px;
@@ -218,7 +245,7 @@
         }
         .line-plus-btn:hover { background: #e4e6eb; color: var(--line-green); }
 
-        /* ➕ 點擊 + 號後彈出的功能選單 (照片、相機、位置) */
+        /* ➕ 點擊 + 號後彈出的功能選單 */
         .line-action-menu {
             position: absolute;
             bottom: 60px;
@@ -231,7 +258,7 @@
             flex-direction: column;
             gap: 4px;
             z-index: 100;
-            width: 160px;
+            width: 170px;
             border: 1px solid #eee;
         }
         .menu-item {
@@ -377,11 +404,19 @@
             <div id="actionMenu" class="line-action-menu">
                 <label class="menu-item" onclick="closeActionMenu()">
                     📁 選擇照片
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleMediaSelect(this, 'image')">
                 </label>
                 <label class="menu-item" onclick="closeActionMenu()">
                     📷 開啟相機
-                    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleFileSelect(this)">
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleMediaSelect(this, 'image')">
+                </label>
+                <label class="menu-item" onclick="closeActionMenu()">
+                    🎬 選擇影片
+                    <input type="file" id="videoInput" accept="video/*" style="display: none;" onchange="handleMediaSelect(this, 'video')">
+                </label>
+                <label class="menu-item" onclick="closeActionMenu()">
+                    📄 選擇檔案
+                    <input type="file" id="docInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" style="display: none;" onchange="handleMediaSelect(this, 'doc')">
                 </label>
                 <div class="menu-item" onclick="shareLocation()">
                     📍 分享位置
@@ -394,11 +429,11 @@
                 <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#047833; cursor:pointer; font-weight:bold;">✕</button>
             </div>
 
-            <!-- 選擇圖片預覽提示 -->
+            <!-- 選擇媒體/檔案預覽提示 -->
             <div id="imageSelectedBanner" style="display: none;">
                 <span class="image-preview-badge">
-                    📷 已選擇圖片：<span id="imageFileName"></span>
-                    <button type="button" onclick="clearSelectedImage()" style="margin-left:5px; color:#ff4757;">✕</button>
+                    📎 已選擇：<span id="imageFileName"></span>
+                    <button type="button" onclick="clearSelectedMedia()" style="margin-left:5px; color:#ff4757;">✕</button>
                 </span>
             </div>
 
@@ -504,7 +539,10 @@
         let currentActionType = null; 
         let currentActionKey = null;
 
-        // ➕ 切換 + 號彈出選單
+        // 當前選擇的檔案與類型
+        let selectedFileObj = null;
+        let selectedFileType = null; // 'image', 'video', 'doc'
+
         plusBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             actionMenu.style.display = actionMenu.style.display === 'flex' ? 'none' : 'flex';
@@ -532,51 +570,55 @@
             lightbox.style.display = 'none';
         };
 
-        window.handleFileSelect = function(input) {
+        window.handleMediaSelect = function(input, type) {
             if (input.files && input.files[0]) {
-                imageFileName.innerText = input.files[0].name;
+                const file = input.files[0];
+                selectedFileObj = file;
+                selectedFileType = type;
+                imageFileName.innerText = file.name;
                 imageSelectedBanner.style.display = 'block';
-                // 清空另一個input避免衝突
-                if(input.id === 'fileInput') document.getElementById('cameraInput').value = '';
-                else document.getElementById('fileInput').value = '';
+
+                // 清空其他 input 避免衝突
+                ['imageInput', 'cameraInput', 'videoInput', 'docInput'].forEach(id => {
+                    if(document.getElementById(id) !== input) document.getElementById(id).value = '';
+                });
             }
         };
 
-        window.clearSelectedImage = function() {
-            document.getElementById('fileInput').value = '';
-            document.getElementById('cameraInput').value = '';
+        window.clearSelectedMedia = function() {
+            ['imageInput', 'cameraInput', 'videoInput', 'docInput'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            selectedFileObj = null;
+            selectedFileType = null;
             imageSelectedBanner.style.display = 'none';
         };
 
-        // 📍 分享目前位置功能
+        // 📍 分享目前位置
         window.shareLocation = function() {
             if (!currentUser) return alert("請先登入！");
-            if (!navigator.geolocation) {
-                alert("您的瀏覽器不支援地理定位功能！");
-                return;
-            }
+            if (!navigator.geolocation) return alert("您的瀏覽器不支援定位！");
 
-            alert("正在取得您的 GPS 位置，請稍候...");
+            alert("正在取得 GPS 位置...");
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
                     const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-                    const locationText = `📍 我的目前位置：\n緯度: ${lat.toFixed(4)}, 經度: ${lng.toFixed(4)}\n👉 點擊查看 Google 地圖：\n${mapUrl}`;
+                    const text = `📍 我的目前位置：\n緯度: ${lat.toFixed(4)}, 經度: ${lng.toFixed(4)}\n👉 點擊查看 Google 地圖：\n${mapUrl}`;
 
                     push(commentsRef, {
                         uid: currentUser.uid,
                         author: currentUser.displayName || "會員",
                         email: currentUser.email,
-                        text: locationText,
-                        imageUrl: null,
+                        text: text,
+                        mediaUrl: null,
+                        mediaType: null,
                         likes: 0,
                         timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
                     });
                 },
-                (error) => {
-                    alert("無法取得位置：「" + error.message + "」。請確認瀏覽器已授權定位權限。");
-                },
+                (err) => alert("無法取得定位：" + err.message),
                 { enableHighAccuracy: true, timeout: 10000 }
             );
         };
@@ -625,23 +667,30 @@
             }
         });
 
-        function compressAndConvertImage(file) {
-            return new Promise((resolve) => {
+        // 轉換檔案為 Base64 (圖片壓縮，影片與檔案轉 Base64 供資料庫儲存)
+        function convertFileToBase64(file, type) {
+            return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800;
-                        let w = img.width, h = img.height;
-                        if (w > MAX_WIDTH) { h *= MAX_WIDTH / w; w = MAX_WIDTH; }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    };
+                    if (type === 'image') {
+                        const img = new Image();
+                        img.src = e.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            let w = img.width, h = img.height;
+                            if (w > MAX_WIDTH) { h *= MAX_WIDTH / w; w = MAX_WIDTH; }
+                            canvas.width = w; canvas.height = h;
+                            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                            resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        };
+                    } else {
+                        // 影片或一般檔案直接轉 Base64
+                        resolve(e.target.result);
+                    }
                 };
+                reader.onerror = error => reject(error);
             });
         }
 
@@ -649,36 +698,50 @@
             e.preventDefault();
             if (!currentUser) return alert("請先登入！");
             const text = textArea.value.trim();
-            const fileInput = document.getElementById('fileInput').files[0];
-            const cameraInput = document.getElementById('cameraInput').files[0];
-            const file = fileInput || cameraInput;
 
-            if (!text && !file) return;
+            if (!text && !selectedFileObj) return;
 
             submitBtn.disabled = true;
-            let imageUrl = file ? await compressAndConvertImage(file) : null;
+            let mediaUrl = null;
 
-            const postData = {
-                uid: currentUser.uid,
-                author: currentUser.displayName || "會員",
-                email: currentUser.email,
-                text: text,
-                imageUrl: imageUrl,
-                likes: 0,
-                timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
-            };
+            try {
+                if (selectedFileObj) {
+                    if (selectedFileObj.size > 10 * 1024 * 1024) {
+                        alert("檔案大小超過 10MB 限制，請上傳較小的檔案！");
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    mediaUrl = await convertFileToBase64(selectedFileObj, selectedFileType);
+                }
 
-            if (currentReplyTarget) {
-                postData.parentKey = currentReplyTarget.parentKey;
-                postData.replyToAuthor = currentReplyTarget.author;
-                postData.replyToSnippet = currentReplyTarget.snippet;
+                const postData = {
+                    uid: currentUser.uid,
+                    author: currentUser.displayName || "會員",
+                    email: currentUser.email,
+                    text: text,
+                    mediaUrl: mediaUrl,
+                    mediaType: selectedFileType, // 'image', 'video', 'doc'
+                    fileName: selectedFileObj ? selectedFileObj.name : null,
+                    fileSize: selectedFileObj ? (selectedFileObj.size / 1024).toFixed(1) + ' KB' : null,
+                    likes: 0,
+                    timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+                };
+
+                if (currentReplyTarget) {
+                    postData.parentKey = currentReplyTarget.parentKey;
+                    postData.replyToAuthor = currentReplyTarget.author;
+                    postData.replyToSnippet = currentReplyTarget.snippet;
+                }
+
+                push(commentsRef, postData);
+                textArea.value = '';
+                clearSelectedMedia();
+                cancelReplyTarget();
+            } catch (err) {
+                alert("上傳失敗：" + err.message);
+            } finally {
+                submitBtn.disabled = false;
             }
-
-            push(commentsRef, postData);
-            textArea.value = '';
-            clearSelectedImage();
-            cancelReplyTarget();
-            submitBtn.disabled = false;
         });
 
         window.handleLike = function(key) {
@@ -744,12 +807,30 @@
             if (!data) return '';
             const key = snapshot.key;
             const isMe = currentUser && currentUser.uid === data.uid;
-            const badge = data.email === ADMIN_EMAIL ? `<span class="admin-badge">👑 管理員</span>` : '';
+            const badge = data.email === ADMIN_EMAIL ? `<span class="admin-badge">👑 版主</span>` : '';
             const quote = data.replyToAuthor ? `<div class="quote-box"><strong>@${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}</div>` : '';
-            const img = data.imageUrl ? `<div class="file-attachment"><img src="${data.imageUrl}" onclick="openLightbox('${data.imageUrl}')"></div>` : '';
+            
+            // 根據不同媒體類型渲染不同UI
+            let mediaHTML = '';
+            if (data.mediaUrl) {
+                if (data.mediaType === 'image') {
+                    mediaHTML = `<div class="file-attachment"><img src="${data.mediaUrl}" onclick="openLightbox('${data.mediaUrl}')"></div>`;
+                } else if (data.mediaType === 'video') {
+                    mediaHTML = `<div class="file-attachment"><video src="${data.mediaUrl}" controls></video></div>`;
+                } else if (data.mediaType === 'doc') {
+                    mediaHTML = `
+                        <a href="${data.mediaUrl}" download="${data.fileName || 'download'}" class="doc-card">
+                            <div class="doc-icon">📄</div>
+                            <div class="doc-info">
+                                <div class="doc-name">${escapeHTML(data.fileName || '未命名檔案')}</div>
+                                <div class="doc-size">${data.fileSize || ''} · 點擊下載</div>
+                            </div>
+                        </a>`;
+                }
+            }
+
             const readStatusText = Math.max(0, onlineCount - 1) > 0 ? '已讀' : '未讀';
 
-            // 支援把網址轉換成可點擊的超連結（如 Google 地圖連結）
             let formattedText = escapeHTML(data.text || '');
             formattedText = formattedText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: #0056b3; text-decoration: underline;">$1</a>');
 
@@ -760,7 +841,7 @@
                         <div class="chat-bubble">
                             ${quote}
                             <div id="text-${key}">${formattedText}</div>
-                            ${img}
+                            ${mediaHTML}
                             <div class="action-container">
                                 <button type="button" class="like-btn" onclick="handleLike('${key}')">❤️ ${data.likes || 0}</button>
                                 <button type="button" class="reply-btn" onclick="startReply('${key}', '${escapeHTML(data.author)}', '${escapeHTML(data.text)}')">↩️</button>
