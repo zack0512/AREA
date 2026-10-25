@@ -3,32 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AREA</title>
+    <title>AREA - LINE Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --line-green: #06C755;
+            --line-green-hover: #05b34c;
+            --line-bg: #7494a8; /* LINE 經典聊天室背景灰藍色 */
+            --bubble-user: #85e249; /* 自己訊息氣泡綠 */
+        }
+
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             max-width: 600px; 
-            margin: 30px auto; 
-            padding: 0 20px; 
-            background-color: #f4f6f9; 
+            margin: 0 auto; 
+            padding: 15px; 
+            background-color: #eef2f5; 
+            min-height: 100vh;
         }
         .comment-box { 
             background: #ffffff; 
             padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
         }
-        h2 { margin-top: 0; color: #333; }
+        
+        .line-header-title {
+            color: var(--line-green);
+            font-weight: 800;
+        }
+
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
         input[type="text"], input[type="password"], input[type="email"], textarea, input[type="file"] { 
             width: 100%; 
-            padding: 10px; 
+            padding: 10px 12px; 
             box-sizing: border-box; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
+            border: 1.5px solid #e1e8ed; 
+            border-radius: 10px; 
             font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--line-green);
         }
         textarea { height: 80px; resize: vertical; }
 
@@ -37,24 +55,24 @@
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             padding: 15px;
-            border-radius: 6px;
+            border-radius: 12px;
             margin-bottom: 20px;
         }
 
         /* 表情符號選擇區塊樣式 */
         .emoji-picker {
-            margin-top: 5px;
+            margin-top: 6px;
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             background: #f0f2f5;
             padding: 8px;
-            border-radius: 6px;
+            border-radius: 8px;
         }
         .emoji-btn {
             background: #ffffff;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 18px;
             padding: 4px 8px;
             cursor: pointer;
@@ -66,68 +84,133 @@
         }
 
         button.submit-btn { 
-            background: #007bff; 
+            background: var(--line-green); 
             color: white; 
             border: none; 
-            padding: 10px 20px; 
+            padding: 12px 20px; 
             cursor: pointer; 
-            border-radius: 4px; 
-            font-size: 14px; 
+            border-radius: 10px; 
+            font-weight: bold;
+            font-size: 15px; 
             width: 100%;
+            box-shadow: 0 3px 10px rgba(6, 199, 85, 0.3);
+            transition: background 0.2s;
         }
-        button.submit-btn:disabled { background: #aaa; cursor: not-allowed; }
-        button.submit-btn:hover:not(:disabled) { background: #0056b3; }
+        button.submit-btn:disabled { background: #aaa; cursor: not-allowed; box-shadow: none; }
+        button.submit-btn:hover:not(:disabled) { background: var(--line-green-hover); }
         
         .auth-btn {
-            background: #28a745;
+            background: var(--line-green);
             color: white;
             border: none;
             padding: 8px 15px;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: bold;
         }
-        .auth-btn:hover { background: #218838; }
+        .auth-btn:hover { background: var(--line-green-hover); }
         .auth-btn.secondary { background: #6c757d; }
         .auth-btn.secondary:hover { background: #5a6268; }
 
-        .comment-list { margin-top: 30px; }
-        .comment-item { 
-            background: #f9f9f9; 
-            border-left: 4px solid #007bff; 
-            padding: 12px 15px; 
-            margin-bottom: 12px; 
-            border-radius: 0 4px 4px 0; 
-            position: relative;
+        /* 💬 LINE 聊天室風格 - 訊息氣泡區域 */
+        .chat-container {
+            margin-top: 25px;
+            background: var(--line-bg);
+            border-radius: 16px;
+            padding: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        /* 💬 二級留言 / 樓中樓縮排樣式 */
-        .reply-item {
-            margin-left: 20px;
-            border-left: 3px solid #6c757d;
-            background: #ffffff;
-            border-top: 1px solid #eee;
-            border-bottom: 1px solid #eee;
+        .chat-bubble-wrapper {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+
+        /* 自己的訊息（靠右） */
+        .chat-bubble-wrapper.is-me {
+            align-items: flex-end;
+        }
+        /* 他人的訊息（靠左） */
+        .chat-bubble-wrapper.is-other {
+            align-items: flex-start;
+        }
+
+        .chat-author-name {
+            font-size: 12px;
+            color: #ffffff;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .chat-meta-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .chat-bubble-wrapper.is-me .chat-meta-container {
+            flex-direction: row-reverse;
+        }
+
+        .chat-bubble {
+            max-width: 82%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            word-break: break-word;
+        }
+
+        /* 自己的氣泡綠 */
+        .chat-bubble-wrapper.is-me .chat-bubble {
+            background-color: var(--bubble-user);
+            color: #111;
+            border-top-right-radius: 4px;
+        }
+
+        /* 他人的氣泡白 */
+        .chat-bubble-wrapper.is-other .chat-bubble {
+            background-color: #ffffff;
+            color: #222;
+            border-top-left-radius: 4px;
+        }
+
+        /* 👁️ 已讀 / 未讀標籤 */
+        .read-status {
+            font-size: 10px;
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            margin-bottom: 2px;
         }
 
         /* 引用背景區塊 */
         .quote-box {
-            background: #eef2f7;
-            border-left: 3px solid #007bff;
-            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.06);
+            border-left: 3px solid var(--line-green);
+            padding: 5px 8px;
             border-radius: 4px;
-            font-size: 13px;
-            color: #555;
-            margin-bottom: 8px;
+            font-size: 12px;
+            color: #444;
+            margin-bottom: 6px;
         }
 
         /* 引用提示標籤 */
         .reply-banner {
-            background: #e7f1ff;
-            border: 1px solid #b6d4fe;
-            color: #084298;
+            background: #e6f9ed;
+            border: 1px solid #b2f0c7;
+            color: #047833;
             padding: 6px 12px;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 13px;
             margin-bottom: 10px;
             display: flex;
@@ -135,65 +218,59 @@
             align-items: center;
         }
 
-        .comment-header { 
-            font-size: 0.9em; 
-            color: #666; 
-            margin-bottom: 6px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
+        .chat-time {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.85);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
-        .comment-author { font-weight: bold; color: #333; display: flex; align-items: center; gap: 6px; }
-        .comment-text { margin: 0 0 10px 0; color: #444; white-space: pre-line; font-size: 15px; }
 
         /* 🖼️ 圖片預覽與懸停效果 */
         .file-attachment img { 
             max-width: 100%; 
-            max-height: 250px; 
-            border-radius: 6px; 
+            max-height: 220px; 
+            border-radius: 10px; 
             display: block; 
-            margin-top: 8px; 
+            margin-top: 6px; 
             cursor: zoom-in;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.2s ease;
         }
         .file-attachment img:hover {
             transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         /* 管理員徽章樣式 */
         .admin-badge {
             background: linear-gradient(135deg, #ff4757, #ff6b81);
             color: white;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 12px;
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 10px;
             font-weight: bold;
-            box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+            box-shadow: 0 1px 3px rgba(255, 71, 87, 0.3);
             display: inline-flex;
             align-items: center;
-            gap: 3px;
+            gap: 2px;
         }
 
         /* 按鈕區塊樣式 */
         .action-container {
-            margin-top: 10px;
+            margin-top: 6px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
         .like-btn {
             background: #ffffff;
             border: 1px solid #ff4757;
             color: #ff4757;
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 2px 8px;
+            border-radius: 15px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 11px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             transition: all 0.2s ease;
         }
         .like-btn:hover {
@@ -202,19 +279,19 @@
         }
         
         .reply-btn, .edit-btn, .delete-btn {
-            background: none;
+            background: rgba(255,255,255,0.8);
             border: none;
             cursor: pointer;
-            font-size: 13px;
-            padding: 4px 8px;
+            font-size: 11px;
+            padding: 2px 6px;
             border-radius: 4px;
             transition: all 0.2s;
         }
-        .reply-btn { color: #28a745; }
-        .reply-btn:hover { background-color: #e6f4ea; }
+        .reply-btn { color: #047833; }
+        .reply-btn:hover { background-color: #d8f5e3; }
         .edit-btn { color: #007bff; }
         .edit-btn:hover { background-color: #e7f1ff; }
-        .delete-btn { color: #888; }
+        .delete-btn { color: #666; }
         .delete-btn:hover { color: #d9534f; background-color: #fee; }
 
         /* 🔒 管理員/驗證彈窗 CSS 樣式 */
@@ -231,7 +308,7 @@
         .modal-box {
             background: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             width: 90%;
             max-width: 350px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -247,11 +324,12 @@
             flex: 1;
             padding: 8px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: bold;
         }
-        .modal-btn.confirm { background: #007bff; color: white; }
+        .modal-btn.confirm { background: var(--line-green); color: white; }
         .modal-btn.cancel { background: #ccc; color: #333; }
 
         /* 🖼️ Lightbox 全螢幕圖片放大視窗 */
@@ -259,7 +337,7 @@
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.88);
             backdrop-filter: blur(5px);
             display: none;
             justify-content: center;
@@ -300,8 +378,8 @@
 
     <div class="comment-box">
         <div style="text-align: center; margin-bottom: 15px;">
-            <img src="IMG_20261005_171430.jpg" alt="Logo" style="max-width: 120px; height: auto;">
-            <h2 style="margin-top: 10px;">LINE的pro版->AREA</h2>
+            <img src="IMG_20261005_171430.jpg" alt="Logo" style="max-width: 100px; height: auto;">
+            <h2 class="line-header-title" style="margin-top: 8px; font-size: 22px;">LINE Pro -> AREA</h2>
         </div>
 
         <!-- 👤 會員登入 / 註冊區塊 -->
@@ -328,9 +406,9 @@
             
             <div id="loggedInView" style="display: none; display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <span style="font-size: 13px; color: #666;">目前登入身分：</span>
-                    <strong id="userDisplayName" style="color: #007bff; display: flex; align-items: center; gap: 5px; font-size: 16px;"></strong>
-                    <span id="userDisplayEmail" style="font-size: 12px; color: #888;"></span>
+                    <span style="font-size: 12px; color: #666;">登入身份：</span>
+                    <strong id="userDisplayName" style="color: var(--line-green); display: flex; align-items: center; gap: 5px; font-size: 15px;"></strong>
+                    <span id="userDisplayEmail" style="font-size: 11px; color: #888;"></span>
                 </div>
                 <button type="button" id="logoutBtn" class="auth-btn secondary" style="background: #d9534f;">登出</button>
             </div>
@@ -341,12 +419,12 @@
             <!-- ↩️ 引用回覆提示條 -->
             <div id="replyBanner" class="reply-banner" style="display: none;">
                 <span>正在回覆：<strong id="replyAuthorName"></strong></span>
-                <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#084298; cursor:pointer; font-weight:bold;">✕ 取消</button>
+                <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#047833; cursor:pointer; font-weight:bold;">✕ 取消</button>
             </div>
 
             <div class="form-group">
-                <label for="text">留言內容：</label>
-                <textarea id="text" placeholder="請寫下您的留言..." required></textarea>
+                <label for="text">發送訊息：</label>
+                <textarea id="text" placeholder="輸入訊息..." required></textarea>
                 
                 <!-- 表情符號快捷列 -->
                 <div class="emoji-picker" id="emojiPicker">
@@ -365,18 +443,19 @@
                 </div>
             </div>
             <div class="form-group">
-                <label for="fileInput">夾帶圖片（選填）：</label>
+                <label for="fileInput">傳送圖片（選填）：</label>
                 <input type="file" id="fileInput" accept="image/*">
             </div>
-            <button type="submit" id="submitBtn" class="submit-btn">發布留言</button>
+            <button type="submit" id="submitBtn" class="submit-btn">傳送訊息 💬</button>
         </form>
 
         <div id="loginPrompt" style="text-align: center; color: #888; padding: 20px;">
-            請先登入會員以發表留言。
+            請先登入會員以加入聊天。
         </div>
 
-        <div class="comment-list" id="commentList">
-            <h3>所有留言</h3>
+        <!-- 💬 LINE 經典聊天室風格對話框區塊 -->
+        <div class="chat-container" id="commentList">
+            <!-- 訊息動態渲染於此 -->
         </div>
     </div>
 
@@ -412,7 +491,7 @@
     <!-- 載入 Firebase Realtime Database 與 Auth -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, remove, update, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, remove, update, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         // 🔑 專屬最高管理員信箱與預設密碼
@@ -434,6 +513,7 @@
         const db = getDatabase(app);
         const auth = getAuth(app);
         const commentsRef = ref(db, 'comments');
+        const onlineUsersRef = ref(db, 'online_users');
 
         const form = document.getElementById('commentForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -460,7 +540,7 @@
         // 引用回覆 UI
         const replyBanner = document.getElementById('replyBanner');
         const replyAuthorName = document.getElementById('replyAuthorName');
-        let currentReplyTarget = null; // 記錄被回覆的資料 { parentKey, author, text }
+        let currentReplyTarget = null; 
 
         // 彈窗UI元素
         const actionModal = document.getElementById('actionModal');
@@ -480,9 +560,20 @@
 
         let isRegisterMode = false;
         let currentUser = null;
+        let onlineCount = 1; // 預設線上人數
 
         let currentActionType = null; 
         let currentActionKey = null;
+
+        // 追蹤線上人數以計算已讀狀態
+        onValue(onlineUsersRef, (snapshot) => {
+            if (snapshot.exists()) {
+                onlineCount = Object.keys(snapshot.val()).length;
+                updateAllReadStatuses();
+            } else {
+                onlineCount = 1;
+            }
+        });
 
         // Lightbox 開啟與關閉
         window.openLightbox = function(src) {
@@ -514,7 +605,7 @@
             currentReplyTarget = {
                 parentKey: key,
                 author: author,
-                snippet: textSnippet.length > 30 ? textSnippet.substring(0, 30) + '...' : textSnippet
+                snippet: textSnippet.length > 25 ? textSnippet.substring(0, 25) + '...' : textSnippet
             };
             replyAuthorName.innerText = `${author}（「${currentReplyTarget.snippet}」）`;
             replyBanner.style.display = 'flex';
@@ -575,6 +666,10 @@
         });
 
         logoutBtn.addEventListener('click', () => {
+            if (currentUser) {
+                const userStatusRef = ref(db, `online_users/${currentUser.uid}`);
+                set(userStatusRef, null);
+            }
             signOut(auth).then(() => {
                 alert("已成功登出。");
             });
@@ -589,10 +684,15 @@
                 loginPrompt.style.display = 'none';
 
                 const isAdmin = user.email === ADMIN_EMAIL;
-                const badgeHTML = isAdmin ? `<span class="admin-badge">👑 管理員</span>` : '';
+                const badgeHTML = isAdmin ? `<span class="admin-badge">👑 版主</span>` : '';
 
                 userDisplayName.innerHTML = `${escapeHTML(user.displayName || "未命名會員")} ${badgeHTML}`;
                 userDisplayEmail.innerText = user.email;
+
+                // 註冊線上狀態
+                const userStatusRef = ref(db, `online_users/${user.uid}`);
+                set(userStatusRef, true);
+                onDisconnect(userStatusRef).remove();
             } else {
                 loggedOutView.style.display = 'block';
                 loggedInView.style.display = 'none';
@@ -659,7 +759,7 @@
             if (!text) return;
 
             submitBtn.disabled = true;
-            submitBtn.innerText = "處理中...";
+            submitBtn.innerText = "傳送中...";
 
             let imageUrl = null;
 
@@ -669,7 +769,6 @@
                     imageUrl = await compressAndConvertImage(file);
                 }
 
-                // 組合發布的資料，包含被回覆貼文的引用資訊
                 const postData = {
                     uid: currentUser.uid,
                     author: currentUser.displayName || "匿名會員",
@@ -677,7 +776,7 @@
                     text: text,
                     imageUrl: imageUrl,
                     likes: 0,
-                    timestamp: new Date().toLocaleString('zh-TW', { hour12: false })
+                    timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
                 };
 
                 if (currentReplyTarget) {
@@ -697,7 +796,7 @@
                 alert("發布失敗：" + error.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "發布留言";
+                submitBtn.innerText = "傳送訊息 💬";
             }
         });
 
@@ -720,7 +819,7 @@
             const isAdmin = currentUser.email === ADMIN_EMAIL;
 
             if (isOwner || isAdmin) {
-                if (confirm("確定要刪除這則留言嗎？")) {
+                if (confirm("確定要刪除這則訊息嗎？")) {
                     executeDelete(commentKey);
                 }
             } else {
@@ -812,6 +911,14 @@
             }
         }
 
+        function updateAllReadStatuses() {
+            document.querySelectorAll('.read-status').forEach(el => {
+                const readCount = Math.max(0, onlineCount - 1);
+                el.innerText = readCount > 0 ? (readCount === 1 ? '已讀' : `已讀 ${readCount}`) : '未讀';
+            });
+        }
+
+        // 💬 LINE 氣泡型態與「已讀」渲染
         function renderComment(snapshot) {
             const data = snapshot.val();
             if (!data) return '';
@@ -824,15 +931,16 @@
             const likesCount = data.likes || 0;
             const commentUid = data.uid || '';
 
+            const isMe = currentUser && currentUser.uid === commentUid;
             const isAdminPost = email === ADMIN_EMAIL;
             const badgeHTML = isAdminPost ? `<span class="admin-badge">👑 版主</span>` : '';
 
-            // 引用區塊渲染
+            // 引用區塊
             let quoteHTML = '';
             if (data.replyToAuthor) {
                 quoteHTML = `
                     <div class="quote-box">
-                        <strong>引用 @${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}
+                        <strong>@${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}
                     </div>`;
             }
 
@@ -844,27 +952,38 @@
                     </div>`;
             }
 
+            const readCount = Math.max(0, onlineCount - 1);
+            const readStatusText = readCount > 0 ? (readCount === 1 ? '已讀' : `已讀 ${readCount}`) : '未讀';
+            const readHTML = isMe ? `<div class="read-status">${readStatusText}</div>` : '';
+
             return `
-                <div class="comment-header">
-                    <span class="comment-author">${escapeHTML(author)} ${badgeHTML}</span>
-                    <span>${timestamp}</span>
-                </div>
-                ${quoteHTML}
-                <p class="comment-text" id="text-${key}">${escapeHTML(text)}</p>
-                ${imageHTML}
-                <div class="action-container">
-                    <button type="button" class="like-btn" onclick="handleLike('${key}')">
-                        ❤️讚 <span id="like-count-${key}">${likesCount}</span>
-                    </button>
-                    <button type="button" class="reply-btn" onclick="startReply('${key}', '${escapeHTML(author)}', '${escapeHTML(text)}')">
-                        ↩️ 回覆
-                    </button>
-                    <button type="button" class="edit-btn" onclick="handleEdit('${key}', '${commentUid}')">
-                        ✏️ 修改
-                    </button>
-                    <button type="button" class="delete-btn" onclick="handleDelete('${key}', '${commentUid}')">
-                        🗑️ 刪除
-                    </button>
+                <div class="chat-bubble-wrapper ${isMe ? 'is-me' : 'is-other'}" id="comment-${key}">
+                    <div class="chat-author-name">${escapeHTML(author)} ${badgeHTML}</div>
+                    <div class="chat-meta-container">
+                        <div class="chat-bubble">
+                            ${quoteHTML}
+                            <div id="text-${key}">${escapeHTML(text)}</div>
+                            ${imageHTML}
+                            <div class="action-container">
+                                <button type="button" class="like-btn" onclick="handleLike('${key}')">
+                                    ❤️ <span id="like-count-${key}">${likesCount}</span>
+                                </button>
+                                <button type="button" class="reply-btn" onclick="startReply('${key}', '${escapeHTML(author)}', '${escapeHTML(text)}')">
+                                    ↩️
+                                </button>
+                                <button type="button" class="edit-btn" onclick="handleEdit('${key}', '${commentUid}')">
+                                    ✏️
+                                </button>
+                                <button type="button" class="delete-btn" onclick="handleDelete('${key}', '${commentUid}')">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'};">
+                            ${readHTML}
+                            <div class="chat-time">${timestamp}</div>
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -873,28 +992,11 @@
             const key = snapshot.key;
             if (document.getElementById(`comment-${key}`)) return;
 
-            const data = snapshot.val();
             const div = document.createElement('div');
-            
-            // 判斷是否為樓中樓 (二級留言)
-            const isReply = !!data.parentKey;
-            div.className = isReply ? 'comment-item reply-item' : 'comment-item';
-            div.id = `comment-${key}`;
             div.innerHTML = renderComment(snapshot);
-
-            // 若是樓中樓則渲染在主貼文下方，否則插入列表頂端
-            if (isReply) {
-                const parentEl = document.getElementById(`comment-${data.parentKey}`);
-                if (parentEl) {
-                    parentEl.after(div);
-                } else {
-                    const header = commentList.querySelector('h3');
-                    header.after(div);
-                }
-            } else {
-                const header = commentList.querySelector('h3');
-                header.after(div);
-            }
+            
+            commentList.appendChild(div.firstElementChild);
+            commentList.scrollTop = commentList.scrollHeight;
         });
 
         onChildChanged(commentsRef, (snapshot) => {
