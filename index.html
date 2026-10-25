@@ -802,9 +802,8 @@
         let selectedFileType = null;
 
         let usersProfiles = {};
-        let isInitialLoad = true; // 用於避開第一次大量載入舊訊息時重複彈發通知
+        let isInitialLoad = true;
 
-        // 監聽所有用戶的大頭貼與個人資料
         onValue(usersProfileRef, (snapshot) => {
             if (snapshot.exists()) {
                 usersProfiles = snapshot.val();
@@ -820,8 +819,7 @@
             }
         });
 
-        // 🔔 顯示左上角浮動通知
-        function showNotificationToast(author, email, text, mediaType, uid) {
+        function showNotificationToast(author, email, text, mediaType, imageUrl, mediaUrl, uid) {
             clearTimeout(toastTimer);
             const avatarUrl = (usersProfiles[uid] && usersProfiles[uid].avatar) 
                 ? usersProfiles[uid].avatar 
@@ -832,7 +830,7 @@
             toastBadgeContainer.innerHTML = (email === ADMIN_EMAIL) ? '<span class="admin-badge">👑 版主</span>' : '';
 
             let previewText = text || '';
-            if (mediaType === 'image') previewText = '📷 傳送了一張圖片';
+            if (imageUrl || mediaUrl || mediaType === 'image') previewText = '📷 傳送了一張圖片';
             else if (mediaType === 'video') previewText = '🎬 傳送了一段影片';
             else if (mediaType === 'doc') previewText = '📄 傳送了一個檔案';
 
@@ -841,7 +839,7 @@
             notificationToast.classList.add('show');
             toastTimer = setTimeout(() => {
                 hideToast();
-            }, 3500); // 3.5秒後自動隱藏
+            }, 3500);
         }
 
         window.hideToast = function() {
@@ -975,6 +973,7 @@
                         text: text,
                         mediaUrl: null,
                         mediaType: null,
+                        imageUrl: null,
                         likes: 0,
                         timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
                     });
@@ -1082,8 +1081,9 @@
                     author: currentUser.displayName || "會員",
                     email: currentUser.email,
                     text: text,
-                    mediaUrl: mediaUrl,
+                    mediaUrl: selectedFileType === 'image' ? mediaUrl : mediaUrl, // 同步支援
                     mediaType: selectedFileType,
+                    imageUrl: selectedFileType === 'image' ? mediaUrl : null, // 為了相容舊結構同時寫入 imageUrl
                     fileName: selectedFileObj ? selectedFileObj.name : null,
                     fileSize: selectedFileObj ? (selectedFileObj.size / 1024).toFixed(1) + ' KB' : null,
                     likes: 0,
@@ -1173,22 +1173,25 @@
             const badge = data.email === ADMIN_EMAIL ? `<span class="admin-badge">👑 版主</span>` : '';
             const quote = data.replyToAuthor ? `<div class="quote-box"><strong>@${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}</div>` : '';
             
+            // 💡 同時相容舊的 imageUrl 與新的 mediaUrl
+            const activeImage = data.imageUrl || (data.mediaType === 'image' ? data.mediaUrl : null);
+            const activeVideo = (data.mediaType === 'video' ? data.mediaUrl : null);
+            const activeDoc = (data.mediaType === 'doc' ? data.mediaUrl : null);
+
             let mediaHTML = '';
-            if (data.mediaUrl) {
-                if (data.mediaType === 'image') {
-                    mediaHTML = `<div class="file-attachment"><img src="${data.mediaUrl}" onclick="openLightbox('${data.mediaUrl}')"></div>`;
-                } else if (data.mediaType === 'video') {
-                    mediaHTML = `<div class="file-attachment"><video src="${data.mediaUrl}" controls></video></div>`;
-                } else if (data.mediaType === 'doc') {
-                    mediaHTML = `
-                        <a href="${data.mediaUrl}" download="${data.fileName || 'download'}" class="doc-card">
-                            <div class="doc-icon">📄</div>
-                            <div class="doc-info">
-                                <div class="doc-name">${escapeHTML(data.fileName || '未命名檔案')}</div>
-                                <div class="doc-size">${data.fileSize || ''} · 點擊下載</div>
-                            </div>
-                        </a>`;
-                }
+            if (activeImage) {
+                mediaHTML = `<div class="file-attachment"><img src="${activeImage}" onclick="openLightbox('${activeImage}')"></div>`;
+            } else if (activeVideo) {
+                mediaHTML = `<div class="file-attachment"><video src="${activeVideo}" controls></video></div>`;
+            } else if (activeDoc) {
+                mediaHTML = `
+                    <a href="${activeDoc}" download="${data.fileName || 'download'}" class="doc-card">
+                        <div class="doc-icon">📄</div>
+                        <div class="doc-info">
+                            <div class="doc-name">${escapeHTML(data.fileName || '未命名檔案')}</div>
+                            <div class="doc-size">${data.fileSize || ''} · 點擊下載</div>
+                        </div>
+                    </a>`;
             }
 
             const readStatusText = Math.max(0, onlineCount - 1) > 0 ? '已讀' : '未讀';
@@ -1238,13 +1241,11 @@
             commentList.appendChild(div.firstElementChild);
             commentList.scrollTop = commentList.scrollHeight;
 
-            // 當新訊息近來時觸發左上角動態浮動通知 (載入舊訊息時略過)
             if (!isInitialLoad && data) {
-                showNotificationToast(data.author, data.email, data.text, data.mediaType, data.uid);
+                showNotificationToast(data.author, data.email, data.text, data.mediaType, data.imageUrl, data.mediaUrl, data.uid);
             }
         });
 
-        // 初始化載入完成後開啟通知
         get(commentsRef).then(() => {
             setTimeout(() => { isInitialLoad = false; }, 1000);
         });
