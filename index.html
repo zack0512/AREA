@@ -17,109 +17,57 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             max-width: 600px; 
             margin: 0 auto; 
-            padding: 15px; 
+            padding: 10px; 
             background-color: #eef2f5; 
-            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            flex-col;
+            box-sizing: border-box;
         }
-        .comment-box { 
-            background: #ffffff; 
-            padding: 20px; 
-            border-radius: 16px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+
+        .main-container {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
         }
-        
+
+        .line-header {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            shrink: 0;
+        }
+
         .line-header-title {
             color: var(--line-green);
             font-weight: 800;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input[type="text"], input[type="password"], input[type="email"], textarea, input[type="file"] { 
-            width: 100%; 
-            padding: 10px 12px; 
-            box-sizing: border-box; 
-            border: 1.5px solid #e1e8ed; 
-            border-radius: 10px; 
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--line-green);
-        }
-        textarea { height: 80px; resize: vertical; }
-
-        /* 會員驗證區塊 */
+        /* 會員驗證區塊 (可摺疊/簡化) */
         .auth-card {
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 15px;
+            font-size: 13px;
         }
 
-        /* 表情符號選擇區塊樣式 */
-        .emoji-picker {
-            margin-top: 6px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            background: #f0f2f5;
-            padding: 8px;
-            border-radius: 8px;
-        }
-        .emoji-btn {
-            background: #ffffff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 18px;
-            padding: 4px 8px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-        .emoji-btn:hover {
-            background: #e4e6eb;
-            transform: scale(1.15);
-        }
-
-        button.submit-btn { 
-            background: var(--line-green); 
-            color: white; 
-            border: none; 
-            padding: 12px 20px; 
-            cursor: pointer; 
-            border-radius: 10px; 
-            font-weight: bold;
-            font-size: 15px; 
-            width: 100%;
-            box-shadow: 0 3px 10px rgba(6, 199, 85, 0.3);
-            transition: background 0.2s;
-        }
-        button.submit-btn:disabled { background: #aaa; cursor: not-allowed; box-shadow: none; }
-        button.submit-btn:hover:not(:disabled) { background: var(--line-green-hover); }
-        
-        .auth-btn {
-            background: var(--line-green);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .auth-btn:hover { background: var(--line-green-hover); }
-        .auth-btn.secondary { background: #6c757d; }
-        .auth-btn.secondary:hover { background: #5a6268; }
-
-        /* 💬 LINE 聊天室風格 - 訊息氣泡區域 */
+        /* 💬 LINE 聊天室對話框區域 (填滿剩餘空間並可滾動) */
         .chat-container {
-            margin-top: 25px;
+            flex: 1;
             background: var(--line-bg);
-            border-radius: 16px;
             padding: 15px;
-            max-height: 600px;
             overflow-y: auto;
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
         }
@@ -130,22 +78,16 @@
             margin-bottom: 16px;
         }
 
-        /* 自己的訊息（靠右） */
-        .chat-bubble-wrapper.is-me {
-            align-items: flex-end;
-        }
-        /* 他人的訊息（靠左） */
-        .chat-bubble-wrapper.is-other {
-            align-items: flex-start;
-        }
+        .chat-bubble-wrapper.is-me { align-items: flex-end; }
+        .chat-bubble-wrapper.is-other { align-items: flex-start; }
 
         .chat-author-name {
-            font-size: 12px;
+            font-size: 11px;
             color: #ffffff;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
@@ -160,31 +102,28 @@
         }
 
         .chat-bubble {
-            max-width: 82%;
-            padding: 10px 14px;
+            max-width: 80%;
+            padding: 8px 12px;
             border-radius: 16px;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.4;
             position: relative;
             box-shadow: 0 1px 3px rgba(0,0,0,0.15);
             word-break: break-word;
         }
 
-        /* 自己的氣泡綠 */
         .chat-bubble-wrapper.is-me .chat-bubble {
             background-color: var(--bubble-user);
             color: #111;
             border-top-right-radius: 4px;
         }
 
-        /* 他人的氣泡白 */
         .chat-bubble-wrapper.is-other .chat-bubble {
             background-color: #ffffff;
             color: #222;
             border-top-left-radius: 4px;
         }
 
-        /* 👁️ 已讀 / 未讀標籤 */
         .read-status {
             font-size: 10px;
             color: #ffffff;
@@ -193,29 +132,14 @@
             margin-bottom: 2px;
         }
 
-        /* 引用背景區塊 */
         .quote-box {
             background: rgba(0, 0, 0, 0.06);
             border-left: 3px solid var(--line-green);
-            padding: 5px 8px;
+            padding: 4px 6px;
             border-radius: 4px;
             font-size: 12px;
             color: #444;
-            margin-bottom: 6px;
-        }
-
-        /* 引用提示標籤 */
-        .reply-banner {
-            background: #e6f9ed;
-            border: 1px solid #b2f0c7;
-            color: #047833;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin-bottom: 4px;
         }
 
         .chat-time {
@@ -224,77 +148,136 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
-        /* 🖼️ 圖片預覽與懸停效果 */
         .file-attachment img { 
             max-width: 100%; 
-            max-height: 220px; 
+            max-height: 200px; 
             border-radius: 10px; 
             display: block; 
             margin-top: 6px; 
             cursor: zoom-in;
             transition: transform 0.2s ease;
         }
-        .file-attachment img:hover {
-            transform: scale(1.02);
-        }
+        .file-attachment img:hover { transform: scale(1.02); }
 
-        /* 管理員徽章樣式 */
         .admin-badge {
             background: linear-gradient(135deg, #ff4757, #ff6b81);
             color: white;
-            font-size: 10px;
-            padding: 1px 6px;
+            font-size: 9px;
+            padding: 1px 5px;
             border-radius: 10px;
             font-weight: bold;
-            box-shadow: 0 1px 3px rgba(255, 71, 87, 0.3);
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
         }
 
-        /* 按鈕區塊樣式 */
         .action-container {
-            margin-top: 6px;
+            margin-top: 4px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
+            gap: 4px;
         }
-        .like-btn {
-            background: #ffffff;
-            border: 1px solid #ff4757;
-            color: #ff4757;
-            padding: 2px 8px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            transition: all 0.2s ease;
-        }
-        .like-btn:hover {
-            background: #ff4757;
-            color: #ffffff;
-        }
-        
-        .reply-btn, .edit-btn, .delete-btn {
+        .like-btn, .reply-btn, .edit-btn, .delete-btn {
             background: rgba(255,255,255,0.8);
             border: none;
             cursor: pointer;
-            font-size: 11px;
-            padding: 2px 6px;
+            font-size: 10px;
+            padding: 2px 5px;
             border-radius: 4px;
-            transition: all 0.2s;
         }
-        .reply-btn { color: #047833; }
-        .reply-btn:hover { background-color: #d8f5e3; }
-        .edit-btn { color: #007bff; }
-        .edit-btn:hover { background-color: #e7f1ff; }
-        .delete-btn { color: #666; }
-        .delete-btn:hover { color: #d9534f; background-color: #fee; }
 
-        /* 🔒 管理員/驗證彈窗 CSS 樣式 */
+        /* 🔻 置底 LINE 風格輸入發送區塊 */
+        .bottom-input-bar {
+            background: #ffffff;
+            border-top: 1px solid #e1e8ed;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            shrink: 0;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* LINE 風格上傳圖片按鈕 (+ 號按鈕) */
+        .line-plus-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f0f2f5;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            shrink: 0;
+        }
+        .line-plus-btn:hover { background: #e4e6eb; color: var(--line-green); }
+
+        /* LINE 聊天輸入框 */
+        .line-textarea {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 18px;
+            font-size: 14px;
+            height: 38px;
+            max-height: 80px;
+            resize: none;
+            outline: none;
+            box-sizing: border-box;
+            background: #f8fafc;
+        }
+        .line-textarea:focus { border-color: var(--line-green); background: #fff; }
+
+        /* LINE 經典綠傳送按鈕 */
+        .line-send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--line-green);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            shrink: 0;
+            box-shadow: 0 2px 6px rgba(6, 199, 85, 0.3);
+            transition: background 0.2s, transform 0.1s;
+        }
+        .line-send-btn:hover { background: var(--line-green-hover); transform: scale(1.05); }
+
+        /* 引用提示條 */
+        .reply-banner {
+            background: #e6f9ed;
+            border: 1px solid #b2f0c7;
+            color: #047833;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 圖片預覽預覽標籤 */
+        .image-preview-badge {
+            font-size: 11px;
+            color: var(--line-green);
+            background: #e6f9ed;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 彈窗樣式 */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -311,190 +294,119 @@
             border-radius: 12px;
             width: 90%;
             max-width: 350px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             text-align: center;
         }
-        .modal-box h4 { margin: 0 0 10px 0; color: #333; }
-        .modal-box input, .modal-box textarea { margin-bottom: 15px; width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .modal-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .modal-btn.confirm { background: var(--line-green); color: white; }
-        .modal-btn.cancel { background: #ccc; color: #333; }
+        .modal-box input, .modal-box textarea { width: 100%; margin-bottom: 12px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
 
-        /* 🖼️ Lightbox 全螢幕圖片放大視窗 */
         .lightbox-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.88);
-            backdrop-filter: blur(5px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            cursor: zoom-out;
-            animation: fadeIn 0.2s ease;
         }
-        .lightbox-img {
-            max-width: 90vw;
-            max-height: 85vh;
-            border-radius: 8px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-            object-fit: contain;
-            cursor: default;
-        }
-        .lightbox-close {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            color: #ffffff;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.2s;
-            user-select: none;
-        }
-        .lightbox-close:hover {
-            color: #ff4757;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        .lightbox-img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <div class="comment-box">
-        <div style="text-align: center; margin-bottom: 15px;">
-            <img src="IMG_20261005_171430.jpg" alt="Logo" style="max-width: 100px; height: auto;">
-            <h2 class="line-header-title" style="margin-top: 8px; font-size: 22px;">LINE Pro -> AREA</h2>
+    <div class="main-container">
+        <!-- 頂部 Header -->
+        <div class="line-header">
+            <div class="line-header-title">
+                <img src="IMG_20261005_171430.jpg" alt="Logo" style="max-height: 30px; width: auto; border-radius: 6px;">
+                <span>AREA 聊天室</span>
+            </div>
+            <span id="userStatusText" style="font-size: 12px; color: #888;">未登入</span>
         </div>
 
-        <!-- 👤 會員登入 / 註冊區塊 -->
+        <!-- 👤 會員驗證區塊 (登入後顯示身分) -->
         <div class="auth-card" id="authCard">
-            <div id="loggedOutView">
-                <h4 style="margin: 0 0 10px 0; color: #333;" id="authTitle">會員登入</h4>
-                <div class="form-group" id="nameGroup" style="display: none;">
-                    <label for="regName">您的名字（暱稱）：</label>
-                    <input type="text" id="regName" placeholder="請輸入顯示的名字">
-                </div>
-                <div class="form-group">
-                    <label for="authEmail">電子郵件：</label>
-                    <input type="email" id="authEmail" placeholder="請輸入 Email">
-                </div>
-                <div class="form-group">
-                    <label for="authPassword">密碼：</label>
-                    <input type="password" id="authPassword" placeholder="請輸入密碼 (至少6碼)">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" id="mainAuthBtn" class="auth-btn">登入</button>
-                    <button type="button" id="toggleAuthModeBtn" class="auth-btn secondary">切換至註冊帳號</button>
-                </div>
+            <div id="loggedOutView" style="display: flex; gap: 6px; align-items: center;">
+                <input type="email" id="authEmail" placeholder="Email" style="padding: 4px 8px; font-size: 12px;">
+                <input type="password" id="authPassword" placeholder="密碼" style="padding: 4px 8px; font-size: 12px;">
+                <button type="button" id="mainAuthBtn" class="bg-emerald-500 text-white px-3 py-1 rounded text-xs">登入</button>
             </div>
             
-            <div id="loggedInView" style="display: none; display: flex; justify-content: space-between; align-items: center;">
+            <div id="loggedInView" style="display: none; justify-content: space-between; align-items: center;">
                 <div>
-                    <span style="font-size: 12px; color: #666;">登入身份：</span>
-                    <strong id="userDisplayName" style="color: var(--line-green); display: flex; align-items: center; gap: 5px; font-size: 15px;"></strong>
-                    <span id="userDisplayEmail" style="font-size: 11px; color: #888;"></span>
+                    <strong id="userDisplayName" style="color: var(--line-green); display: inline-flex; align-items: center; gap: 4px;"></strong>
+                    <span id="userDisplayEmail" style="font-size: 10px; color: #888;"></span>
                 </div>
-                <button type="button" id="logoutBtn" class="auth-btn secondary" style="background: #d9534f;">登出</button>
+                <button type="button" id="logoutBtn" class="text-xs text-red-500 underline">登出</button>
             </div>
         </div>
-        
-        <!-- 留言表單 (登入後解鎖) -->
-        <form id="commentForm" style="display: none;">
-            <!-- ↩️ 引用回覆提示條 -->
-            <div id="replyBanner" class="reply-banner" style="display: none;">
-                <span>正在回覆：<strong id="replyAuthorName"></strong></span>
-                <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#047833; cursor:pointer; font-weight:bold;">✕ 取消</button>
-            </div>
 
-            <div class="form-group">
-                <label for="text">發送訊息：</label>
-                <textarea id="text" placeholder="輸入訊息..." required></textarea>
-                
-                <!-- 表情符號快捷列 -->
-                <div class="emoji-picker" id="emojiPicker">
-                    <button type="button" class="emoji-btn">😀</button>
-                    <button type="button" class="emoji-btn">😂</button>
-                    <button type="button" class="emoji-btn">😍</button>
-                    <button type="button" class="emoji-btn">🥳</button>
-                    <button type="button" class="emoji-btn">😎</button>
-                    <button type="button" class="emoji-btn">👍</button>
-                    <button type="button" class="emoji-btn">❤️</button>
-                    <button type="button" class="emoji-btn">🔥</button>
-                    <button type="button" class="emoji-btn">🎉</button>
-                    <button type="button" class="emoji-btn">🙏</button>
-                    <button type="button" class="emoji-btn">✨</button>
-                    <button type="button" class="emoji-btn">💩</button>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="fileInput">傳送圖片（選填）：</label>
-                <input type="file" id="fileInput" accept="image/*">
-            </div>
-            <button type="submit" id="submitBtn" class="submit-btn">傳送訊息 💬</button>
-        </form>
-
-        <div id="loginPrompt" style="text-align: center; color: #888; padding: 20px;">
-            請先登入會員以加入聊天。
-        </div>
-
-        <!-- 💬 LINE 經典聊天室風格對話框區塊 -->
+        <!-- 💬 LINE 聊天訊息內容區塊 (捲軸顯示) -->
         <div class="chat-container" id="commentList">
             <!-- 訊息動態渲染於此 -->
         </div>
+
+        <!-- 🔻 置底 LINE 風格打字與圖片上傳工具列 -->
+        <form id="commentForm" class="bottom-input-bar">
+            <!-- ↩️ 引用回覆提示條 -->
+            <div id="replyBanner" class="reply-banner" style="display: none;">
+                <span>回覆：<strong id="replyAuthorName"></strong></span>
+                <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#047833; cursor:pointer; font-weight:bold;">✕</button>
+            </div>
+
+            <!-- 選擇圖片預覽提示 -->
+            <div id="imageSelectedBanner" style="display: none;">
+                <span class="image-preview-badge">
+                    📷 已選擇圖片：<span id="imageFileName"></span>
+                    <button type="button" onclick="clearSelectedImage()" style="margin-left:5px; color:#ff4757;">✕</button>
+                </span>
+            </div>
+
+            <div class="input-row">
+                <!-- LINE 風格 + 號上傳按鈕 -->
+                <label for="fileInput" class="line-plus-btn" title="傳送圖片">
+                    ＋
+                </label>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
+
+                <!-- 輸入框 -->
+                <textarea id="text" class="line-textarea" placeholder="輸入訊息..." required></textarea>
+
+                <!-- LINE 綠傳送按鈕 (紙飛機箭頭圖示) -->
+                <button type="submit" id="submitBtn" class="line-send-btn" title="傳送">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </form>
     </div>
 
-    <!-- 🔒 管理員 / 驗證彈窗 -->
+    <!-- 🔒 管理員彈窗 -->
     <div id="actionModal" class="modal-overlay">
         <div class="modal-box">
-            <h4 id="modalTitle">驗證管理員密碼</h4>
-            <p id="modalDesc" style="font-size: 12px; color: #666; margin-bottom: 10px;">非本人貼文需輸入管理員密碼才能操作</p>
-            
+            <h4 id="modalTitle">管理員驗證</h4>
             <div id="editContentContainer" style="display:none; text-align:left;">
-                <label style="font-size:12px; font-weight:bold; color:#555;">修改留言內容：</label>
-                <textarea id="modalEditText" style="height: 100px;"></textarea>
+                <textarea id="modalEditText" style="height: 80px;"></textarea>
             </div>
-
             <div id="passwordInputGroup" style="text-align:left;">
-                <label style="font-size:12px; font-weight:bold; color:#555;">請輸入管理員密碼：</label>
                 <input type="password" id="modalPasswordInput" placeholder="請輸入管理員密碼">
             </div>
-
-            <div class="modal-buttons">
-                <button type="button" class="modal-btn cancel" id="modalCancelBtn">取消</button>
-                <button type="button" class="modal-btn confirm" id="modalConfirmBtn">確定執行</button>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="bg-gray-300 px-4 py-1.5 rounded text-sm w-full" id="modalCancelBtn">取消</button>
+                <button type="button" class="bg-emerald-500 text-white px-4 py-1.5 rounded text-sm w-full" id="modalConfirmBtn">確定</button>
             </div>
         </div>
     </div>
 
-    <!-- 🖼️ Lightbox 圖片放大浮層 -->
-    <div id="lightbox" class="lightbox-overlay">
-        <span class="lightbox-close" id="lightboxClose">&times;</span>
-        <img id="lightboxImg" class="lightbox-img" src="" alt="放大預覽圖片" onclick="event.stopPropagation()">
+    <!-- 🖼️ Lightbox 全螢幕圖片放大視窗 -->
+    <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+        <img id="lightboxImg" class="lightbox-img" src="" alt="放大預覽圖片">
     </div>
 
     <!-- 載入 Firebase Realtime Database 與 Auth -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, remove, update, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // 🔑 專屬最高管理員信箱與預設密碼
         const ADMIN_EMAIL = "11550252@tajh.tp.edu.tw"; 
         const ADMIN_PASSWORD = "admin1234"; 
 
@@ -519,33 +431,23 @@
         const submitBtn = document.getElementById('submitBtn');
         const commentList = document.getElementById('commentList');
         const textArea = document.getElementById('text');
-        const emojiPicker = document.getElementById('emojiPicker');
 
-        // 會員UI元素
         const loggedOutView = document.getElementById('loggedOutView');
         const loggedInView = document.getElementById('loggedInView');
-        const commentForm = document.getElementById('commentForm');
-        const loginPrompt = document.getElementById('loginPrompt');
-        const authTitle = document.getElementById('authTitle');
-        const nameGroup = document.getElementById('nameGroup');
-        const regName = document.getElementById('regName');
         const authEmail = document.getElementById('authEmail');
         const authPassword = document.getElementById('authPassword');
         const mainAuthBtn = document.getElementById('mainAuthBtn');
-        const toggleAuthModeBtn = document.getElementById('toggleAuthModeBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const userDisplayName = document.getElementById('userDisplayName');
         const userDisplayEmail = document.getElementById('userDisplayEmail');
+        const userStatusText = document.getElementById('userStatusText');
 
-        // 引用回覆 UI
         const replyBanner = document.getElementById('replyBanner');
         const replyAuthorName = document.getElementById('replyAuthorName');
-        let currentReplyTarget = null; 
+        const imageSelectedBanner = document.getElementById('imageSelectedBanner');
+        const imageFileName = document.getElementById('imageFileName');
 
-        // 彈窗UI元素
         const actionModal = document.getElementById('actionModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalDesc = document.getElementById('modalDesc');
         const editContentContainer = document.getElementById('editContentContainer');
         const passwordInputGroup = document.getElementById('passwordInputGroup');
         const modalEditText = document.getElementById('modalEditText');
@@ -553,126 +455,63 @@
         const modalConfirmBtn = document.getElementById('modalConfirmBtn');
         const modalCancelBtn = document.getElementById('modalCancelBtn');
 
-        // Lightbox 元素
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightboxImg');
-        const lightboxClose = document.getElementById('lightboxClose');
 
-        let isRegisterMode = false;
         let currentUser = null;
         let onlineCount = 1; 
-
+        let currentReplyTarget = null;
         let currentActionType = null; 
         let currentActionKey = null;
 
-        // 追蹤線上人數以計算已讀狀態
         onValue(onlineUsersRef, (snapshot) => {
-            if (snapshot.exists()) {
-                onlineCount = Object.keys(snapshot.val()).length;
-                updateAllReadStatuses();
-            } else {
-                onlineCount = 1;
-            }
+            onlineCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 1;
+            updateAllReadStatuses();
         });
 
-        // Lightbox 開啟與關閉
         window.openLightbox = function(src) {
             lightboxImg.src = src;
             lightbox.style.display = 'flex';
         };
 
-        function closeLightbox() {
+        window.closeLightbox = function() {
             lightbox.style.display = 'none';
-            lightboxImg.src = '';
-        }
-
-        lightbox.addEventListener('click', closeLightbox);
-        lightboxClose.addEventListener('click', closeLightbox);
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeLightbox();
-                actionModal.style.display = 'none';
-            }
-        });
-
-        // 設定準備回覆某則留言
-        window.startReply = function(key, author, textSnippet) {
-            if (!currentUser) {
-                alert("請先登入才能回覆！");
-                return;
-            }
-            currentReplyTarget = {
-                parentKey: key,
-                author: author,
-                snippet: textSnippet.length > 25 ? textSnippet.substring(0, 25) + '...' : textSnippet
-            };
-            replyAuthorName.innerText = `${author}（「${currentReplyTarget.snippet}」）`;
-            replyBanner.style.display = 'flex';
-            textArea.focus();
-            commentForm.scrollIntoView({ behavior: 'smooth' });
         };
 
-        // 取消引用回覆
+        window.handleFileSelect = function(input) {
+            if (input.files && input.files[0]) {
+                imageFileName.innerText = input.files[0].name;
+                imageSelectedBanner.style.display = 'block';
+            }
+        };
+
+        window.clearSelectedImage = function() {
+            document.getElementById('fileInput').value = '';
+            imageSelectedBanner.style.display = 'none';
+        };
+
+        window.startReply = function(key, author, textSnippet) {
+            if (!currentUser) return alert("請先登入！");
+            currentReplyTarget = { parentKey: key, author, snippet: textSnippet.substring(0, 20) };
+            replyAuthorName.innerText = author;
+            replyBanner.style.display = 'flex';
+            textArea.focus();
+        };
+
         window.cancelReplyTarget = function() {
             currentReplyTarget = null;
             replyBanner.style.display = 'none';
         };
 
-        toggleAuthModeBtn.addEventListener('click', () => {
-            isRegisterMode = !isRegisterMode;
-            if (isRegisterMode) {
-                authTitle.innerText = "註冊新帳號";
-                nameGroup.style.display = "block";
-                mainAuthBtn.innerText = "註冊";
-                toggleAuthModeBtn.innerText = "切換至會員登入";
-            } else {
-                authTitle.innerText = "會員登入";
-                nameGroup.style.display = "none";
-                mainAuthBtn.innerText = "登入";
-                toggleAuthModeBtn.innerText = "切換至註冊帳號";
-            }
-        });
-
         mainAuthBtn.addEventListener('click', async () => {
-            const email = authEmail.value.trim();
-            const password = authPassword.value;
-            const name = regName.value.trim();
-
-            if (!email || !password) {
-                alert("請填寫電子郵件與密碼！");
-                return;
-            }
-
             try {
-                if (isRegisterMode) {
-                    if (!name) {
-                        alert("註冊時請填寫您的名字！");
-                        return;
-                    }
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await updateProfile(userCredential.user, { displayName: name });
-                    alert("🎉 註冊成功並已自動登入！");
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    alert("👋 登入成功！");
-                }
-                authEmail.value = '';
-                authPassword.value = '';
-                regName.value = '';
-            } catch (error) {
-                alert("操作失敗：" + error.message);
-            }
+                await signInWithEmailAndPassword(auth, authEmail.value.trim(), authPassword.value);
+            } catch (e) { alert("登入失敗：" + e.message); }
         });
 
         logoutBtn.addEventListener('click', () => {
-            if (currentUser) {
-                const userStatusRef = ref(db, `online_users/${currentUser.uid}`);
-                set(userStatusRef, null);
-            }
-            signOut(auth).then(() => {
-                alert("已成功登出。");
-            });
+            if (currentUser) set(ref(db, `online_users/${currentUser.uid}`), null);
+            signOut(auth);
         });
 
         onAuthStateChanged(auth, (user) => {
@@ -680,38 +519,18 @@
             if (user) {
                 loggedOutView.style.display = 'none';
                 loggedInView.style.display = 'flex';
-                commentForm.style.display = 'block';
-                loginPrompt.style.display = 'none';
-
+                userStatusText.innerText = "已連線";
                 const isAdmin = user.email === ADMIN_EMAIL;
-                const badgeHTML = isAdmin ? `<span class="admin-badge">👑 版主</span>` : '';
-
-                userDisplayName.innerHTML = `${escapeHTML(user.displayName || "未命名會員")} ${badgeHTML}`;
+                userDisplayName.innerHTML = `${escapeHTML(user.displayName || "會員")} ${isAdmin ? '<span class="admin-badge">👑 版主</span>' : ''}`;
                 userDisplayEmail.innerText = user.email;
 
-                // 註冊線上狀態
-                const userStatusRef = ref(db, `online_users/${user.uid}`);
-                set(userStatusRef, true);
-                onDisconnect(userStatusRef).remove();
+                const statusRef = ref(db, `online_users/${user.uid}`);
+                set(statusRef, true);
+                onDisconnect(statusRef).remove();
             } else {
-                loggedOutView.style.display = 'block';
+                loggedOutView.style.display = 'flex';
                 loggedInView.style.display = 'none';
-                commentForm.style.display = 'none';
-                loginPrompt.style.display = 'block';
-            }
-        });
-
-        // 表情點擊輸入邏輯
-        emojiPicker.addEventListener('click', (e) => {
-            if (e.target.classList.contains('emoji-btn')) {
-                const emoji = e.target.innerText;
-                const start = textArea.selectionStart;
-                const end = textArea.selectionEnd;
-                const text = textArea.value;
-                
-                textArea.value = text.substring(0, start) + emoji + text.substring(end);
-                textArea.focus();
-                textArea.selectionStart = textArea.selectionEnd = start + emoji.length;
+                userStatusText.innerText = "未登入";
             }
         });
 
@@ -719,269 +538,141 @@
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = (event) => {
+                reader.onload = (e) => {
                     const img = new Image();
-                    img.src = event.target.result;
+                    img.src = e.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
                         const MAX_WIDTH = 800;
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
+                        let w = img.width, h = img.height;
+                        if (w > MAX_WIDTH) { h *= MAX_WIDTH / w; w = MAX_WIDTH; }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
                     };
-                    img.onerror = (error) => reject(error);
                 };
-                reader.onerror = (error) => reject(error);
             });
         }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentUser) {
-                alert("請先登入才能發布留言！");
-                return;
-            }
-
+            if (!currentUser) return alert("請先登入！");
             const text = textArea.value.trim();
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-
-            if (!text) return;
+            const file = document.getElementById('fileInput').files[0];
+            if (!text && !file) return;
 
             submitBtn.disabled = true;
-            submitBtn.innerText = "傳送中...";
+            let imageUrl = file ? await compressAndConvertImage(file) : null;
 
-            let imageUrl = null;
+            const postData = {
+                uid: currentUser.uid,
+                author: currentUser.displayName || "會員",
+                email: currentUser.email,
+                text: text,
+                imageUrl: imageUrl,
+                likes: 0,
+                timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+            };
 
-            try {
-                if (file) {
-                    submitBtn.innerText = "圖片處理中...";
-                    imageUrl = await compressAndConvertImage(file);
-                }
-
-                const postData = {
-                    uid: currentUser.uid,
-                    author: currentUser.displayName || "匿名會員",
-                    email: currentUser.email,
-                    text: text,
-                    imageUrl: imageUrl,
-                    likes: 0,
-                    timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
-                };
-
-                if (currentReplyTarget) {
-                    postData.parentKey = currentReplyTarget.parentKey;
-                    postData.replyToAuthor = currentReplyTarget.author;
-                    postData.replyToSnippet = currentReplyTarget.snippet;
-                }
-
-                push(commentsRef, postData);
-
-                textArea.value = '';
-                fileInput.value = '';
-                cancelReplyTarget();
-
-            } catch (error) {
-                console.error("發布失敗：", error);
-                alert("發布失敗：" + error.message);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "傳送訊息 💬";
+            if (currentReplyTarget) {
+                postData.parentKey = currentReplyTarget.parentKey;
+                postData.replyToAuthor = currentReplyTarget.author;
+                postData.replyToSnippet = currentReplyTarget.snippet;
             }
+
+            push(commentsRef, postData);
+            textArea.value = '';
+            clearSelectedImage();
+            cancelReplyTarget();
+            submitBtn.disabled = false;
         });
 
-        window.handleLike = function(commentKey) {
-            const commentLikeRef = ref(db, `comments/${commentKey}/likes`);
-            runTransaction(commentLikeRef, (currentLikes) => {
-                return (currentLikes || 0) + 1;
-            });
+        window.handleLike = function(key) {
+            runTransaction(ref(db, `comments/${key}/likes`), count => (count || 0) + 1);
         };
 
-        window.handleDelete = function(commentKey, commentUid) {
-            if (!currentUser) {
-                alert("請先登入！");
-                return;
-            }
-            currentActionType = 'delete';
-            currentActionKey = commentKey;
-
-            const isOwner = currentUser.uid === commentUid;
-            const isAdmin = currentUser.email === ADMIN_EMAIL;
-
-            if (isOwner || isAdmin) {
-                if (confirm("確定要刪除這則訊息嗎？")) {
-                    executeDelete(commentKey);
-                }
+        window.handleDelete = function(key, uid) {
+            if (!currentUser) return alert("請先登入！");
+            currentActionType = 'delete'; currentActionKey = key;
+            if (currentUser.uid === uid || currentUser.email === ADMIN_EMAIL) {
+                if (confirm("刪除這則訊息？")) executeDelete(key);
             } else {
-                modalTitle.innerText = "管理員權限：刪除留言";
-                modalDesc.innerText = "這是其他會員的貼文，請輸入管理員密碼以進行刪除。";
                 editContentContainer.style.display = 'none';
                 passwordInputGroup.style.display = 'block';
-                modalPasswordInput.value = '';
                 actionModal.style.display = 'flex';
-                modalPasswordInput.focus();
             }
         };
 
-        window.handleEdit = async function(commentKey, commentUid) {
-            if (!currentUser) {
-                alert("請先登入！");
-                return;
-            }
-            currentActionType = 'edit';
-            currentActionKey = commentKey;
-
-            const snap = await get(ref(db, `comments/${commentKey}`));
+        window.handleEdit = async function(key, uid) {
+            if (!currentUser) return alert("請先登入！");
+            currentActionType = 'edit'; currentActionKey = key;
+            const snap = await get(ref(db, `comments/${key}`));
             if (!snap.exists()) return;
-            const data = snap.val();
+            modalEditText.value = snap.val().text || '';
 
-            modalEditText.value = data.text || '';
-
-            const isOwner = currentUser.uid === commentUid;
-            const isAdmin = currentUser.email === ADMIN_EMAIL;
-
-            if (isOwner || isAdmin) {
-                modalTitle.innerText = "修改貼文內容";
-                modalDesc.innerText = isAdmin && !isOwner ? "您正在以【管理員身份】進行修改。" : "您可以更新您的留言內容。";
+            if (currentUser.uid === uid || currentUser.email === ADMIN_EMAIL) {
                 editContentContainer.style.display = 'block';
                 passwordInputGroup.style.display = 'none';
                 actionModal.style.display = 'flex';
-                modalEditText.focus();
             } else {
-                modalTitle.innerText = "管理員權限：修改任意留言";
-                modalDesc.innerText = "這是其他會員的貼文，請輸入管理員密碼以進行修改。";
                 editContentContainer.style.display = 'block';
                 passwordInputGroup.style.display = 'block';
-                modalPasswordInput.value = '';
                 actionModal.style.display = 'flex';
-                modalEditText.focus();
             }
         };
 
-        modalCancelBtn.addEventListener('click', () => {
-            actionModal.style.display = 'none';
-            currentActionKey = null;
-        });
-
-        modalConfirmBtn.addEventListener('click', async () => {
-            if (!currentActionKey) return;
-
-            const snap = await get(ref(db, `comments/${currentActionKey}`));
-            if (!snap.exists()) return;
-            const data = snap.val();
-
-            const isOwner = currentUser.uid === data.uid;
-            const isAdmin = currentUser.email === ADMIN_EMAIL;
-            const inputPwd = modalPasswordInput.value.trim();
-
-            if (isOwner || isAdmin || inputPwd === ADMIN_PASSWORD) {
-                if (currentActionType === 'delete') {
-                    await executeDelete(currentActionKey);
-                } else if (currentActionType === 'edit') {
-                    const newText = modalEditText.value.trim();
-                    if (!newText) {
-                        alert("留言內容不能為空！");
-                        return;
-                    }
-                    await update(ref(db, `comments/${currentActionKey}`), { text: newText });
-                    alert("✅ 留言已成功修改！");
+        modalCancelBtn.onclick = () => actionModal.style.display = 'none';
+        modalConfirmBtn.onclick = async () => {
+            const pwd = modalPasswordInput.value.trim();
+            if (pwd === ADMIN_PASSWORD || currentUser.email === ADMIN_EMAIL) {
+                if (currentActionType === 'delete') await executeDelete(currentActionKey);
+                else if (currentActionType === 'edit') {
+                    await update(ref(db, `comments/${currentActionKey}`), { text: modalEditText.value.trim() });
                     actionModal.style.display = 'none';
                 }
-            } else {
-                alert("❌ 管理員密碼錯誤，無法執行此操作！");
-            }
-        });
+            } else { alert("密碼錯誤！"); }
+        };
 
         async function executeDelete(key) {
-            try {
-                await remove(ref(db, `comments/${key}`));
-                actionModal.style.display = 'none';
-            } catch (error) {
-                alert("刪除失敗：" + error.message);
-            }
+            await remove(ref(db, `comments/${key}`));
+            actionModal.style.display = 'none';
         }
 
         function updateAllReadStatuses() {
             document.querySelectorAll('.read-status').forEach(el => {
-                const readCount = Math.max(0, onlineCount - 1);
-                el.innerText = readCount > 0 ? (readCount === 1 ? '已讀' : `已讀 ${readCount}`) : '未讀';
+                const count = Math.max(0, onlineCount - 1);
+                el.innerText = count > 0 ? (count === 1 ? '已讀' : `已讀 ${count}`) : '未讀';
             });
         }
 
-        // 💬 LINE 氣泡型態與「已讀」渲染
         function renderComment(snapshot) {
             const data = snapshot.val();
             if (!data) return '';
-
             const key = snapshot.key;
-            const author = data.author || '匿名';
-            const email = data.email || '';
-            const text = data.text || '';
-            const timestamp = data.timestamp || '';
-            const likesCount = data.likes || 0;
-            const commentUid = data.uid || '';
-
-            const isMe = currentUser && currentUser.uid === commentUid;
-            const isAdminPost = email === ADMIN_EMAIL;
-            const badgeHTML = isAdminPost ? `<span class="admin-badge">👑 版主</span>` : '';
-
-            // 引用區塊
-            let quoteHTML = '';
-            if (data.replyToAuthor) {
-                quoteHTML = `
-                    <div class="quote-box">
-                        <strong>@${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}
-                    </div>`;
-            }
-
-            let imageHTML = '';
-            if (data.imageUrl) {
-                imageHTML = `
-                    <div class="file-attachment">
-                        <img src="${data.imageUrl}" alt="附件圖片" onclick="openLightbox('${data.imageUrl}')" title="點擊放大預覽">
-                    </div>`;
-            }
-
-            const readCount = Math.max(0, onlineCount - 1);
-            const readStatusText = readCount > 0 ? (readCount === 1 ? '已讀' : `已讀 ${readCount}`) : '未讀';
-            const readHTML = isMe ? `<div class="read-status">${readStatusText}</div>` : '';
+            const isMe = currentUser && currentUser.uid === data.uid;
+            const badge = data.email === ADMIN_EMAIL ? `<span class="admin-badge">👑 版主</span>` : '';
+            const quote = data.replyToAuthor ? `<div class="quote-box"><strong>@${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}</div>` : '';
+            const img = data.imageUrl ? `<div class="file-attachment"><img src="${data.imageUrl}" onclick="openLightbox('${data.imageUrl}')"></div>` : '';
+            const readStatusText = Math.max(0, onlineCount - 1) > 0 ? '已讀' : '未讀';
 
             return `
                 <div class="chat-bubble-wrapper ${isMe ? 'is-me' : 'is-other'}" id="comment-${key}">
-                    <div class="chat-author-name">${escapeHTML(author)} ${badgeHTML}</div>
+                    <div class="chat-author-name">${escapeHTML(data.author || '匿名')} ${badge}</div>
                     <div class="chat-meta-container">
                         <div class="chat-bubble">
-                            ${quoteHTML}
-                            <div id="text-${key}">${escapeHTML(text)}</div>
-                            ${imageHTML}
+                            ${quote}
+                            <div id="text-${key}">${escapeHTML(data.text || '')}</div>
+                            ${img}
                             <div class="action-container">
-                                <button type="button" class="like-btn" onclick="handleLike('${key}')">
-                                    ❤️ <span id="like-count-${key}">${likesCount}</span>
-                                </button>
-                                <button type="button" class="reply-btn" onclick="startReply('${key}', '${escapeHTML(author)}', '${escapeHTML(text)}')">
-                                    ↩️
-                                </button>
-                                <button type="button" class="edit-btn" onclick="handleEdit('${key}', '${commentUid}')">
-                                    ✏️
-                                </button>
-                                <button type="button" class="delete-btn" onclick="handleDelete('${key}', '${commentUid}')">
-                                    🗑️
-                                </button>
+                                <button type="button" class="like-btn" onclick="handleLike('${key}')">❤️ ${data.likes || 0}</button>
+                                <button type="button" class="reply-btn" onclick="startReply('${key}', '${escapeHTML(data.author)}', '${escapeHTML(data.text)}')">↩️</button>
+                                <button type="button" class="edit-btn" onclick="handleEdit('${key}', '${data.uid}')">✏️</button>
+                                <button type="button" class="delete-btn" onclick="handleDelete('${key}', '${data.uid}')">🗑️</button>
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'};">
-                            ${readHTML}
-                            <div class="chat-time">${timestamp}</div>
+                            ${isMe ? `<div class="read-status">${readStatusText}</div>` : ''}
+                            <div class="chat-time">${data.timestamp || ''}</div>
                         </div>
                     </div>
                 </div>
@@ -989,13 +680,9 @@
         }
 
         onChildAdded(commentsRef, (snapshot) => {
-            const key = snapshot.key;
-            if (document.getElementById(`comment-${key}`)) return;
-
+            if (document.getElementById(`comment-${snapshot.key}`)) return;
             const div = document.createElement('div');
             div.innerHTML = renderComment(snapshot);
-            
-            // 最新訊息永遠在最下方，並自動滾動到底部
             commentList.appendChild(div.firstElementChild);
             commentList.scrollTop = commentList.scrollHeight;
         });
@@ -1003,28 +690,16 @@
         onChildChanged(commentsRef, (snapshot) => {
             const key = snapshot.key;
             const data = snapshot.val();
-            const countSpan = document.getElementById(`like-count-${key}`);
-            const textP = document.getElementById(`text-${key}`);
-            if (countSpan && data) {
-                countSpan.innerText = data.likes || 0;
-            }
-            if (textP && data) {
-                textP.innerText = data.text || '';
-            }
+            if (document.getElementById(`text-${key}`)) document.getElementById(`text-${key}`).innerText = data.text || '';
         });
 
         onChildRemoved(commentsRef, (snapshot) => {
-            const deletedElement = document.getElementById(`comment-${snapshot.key}`);
-            if (deletedElement) {
-                deletedElement.remove();
-            }
+            const el = document.getElementById(`comment-${snapshot.key}`);
+            if (el) el.remove();
         });
 
         function escapeHTML(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>'"]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag] || tag));
+            return String(str || '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
     </script>
 </body>
