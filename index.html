@@ -37,7 +37,7 @@
         }
 
         .line-header {
-            padding: 12px 15px;
+            padding: 10px 15px;
             border-bottom: 1px solid #eee;
             background: #fff;
             display: flex;
@@ -52,7 +52,16 @@
             font-size: 18px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+        }
+
+        /* 🖼️ Logo 樣式優化 */
+        .header-logo {
+            height: 34px;
+            width: auto;
+            border-radius: 8px;
+            object-fit: contain;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         /* 📌 頂部置頂公告欄樣式 */
@@ -251,7 +260,7 @@
             border-top-left-radius: 4px;
         }
 
-        /* 大貼圖特有樣式（無氣泡底色） */
+        /* 大貼圖特有樣式 */
         .sticker-bubble {
             background: transparent !important;
             box-shadow: none !important;
@@ -662,10 +671,10 @@
             </div>
         </div>
 
-        <!-- 頂部 Header -->
+        <!-- 頂部 Header 結合你的全新 AREA Logo -->
         <div class="line-header">
             <div class="line-header-title">
-                <img src="IMG_20261005_171430.jpg" alt="Logo" style="max-height: 30px; width: auto; border-radius: 6px;">
+                <img src="IMG_20261005_171430.jpg" alt="AREA Logo" class="header-logo">
                 <span id="headerTitle">AREA 聊天室</span>
             </div>
             <span id="userStatusText" style="font-size: 12px; color: #888;">未登入</span>
@@ -916,7 +925,6 @@
         let usersProfiles = {};
         let isInitialLoad = true;
 
-        // 📌 監聽置頂公告
         onValue(pinnedRef, (snapshot) => {
             if (snapshot.exists() && snapshot.val().text) {
                 pinnedText.innerText = snapshot.val().text;
@@ -929,14 +937,12 @@
             }
         });
 
-        // 📌 管理員取消釘選
         window.unpinAnnouncement = function() {
             if (currentUser && currentUser.email === ADMIN_EMAIL) {
                 set(pinnedRef, null);
             }
         };
 
-        // 🤩 選擇並傳送貼圖
         window.sendSticker = function(stickerSrc) {
             if (!currentUser) return alert("請先登入！");
             push(commentsRef, {
@@ -1054,7 +1060,6 @@
         function openActionSheet(key, uid, author, text) {
             activeSheetKey = key; activeSheetUid = uid; activeSheetAuthor = author; activeSheetText = text;
             
-            // 版主釘選公告按鈕顯隱
             if (currentUser && currentUser.email === ADMIN_EMAIL) {
                 sheetPinBtn.style.display = 'block';
             } else {
@@ -1398,7 +1403,7 @@
                                     ${data.text ? `<div id="text-${key}">${formattedText}</div>` : ''}
                                     ${mediaHTML}
                                     <div style="margin-top: 4px; font-size: 11px; color: #ff4757;">
-                                        ${data.likes > 0 ? `❤️ ${data.likes}` : ''}
+                                        ${data.likes >0 ? `❤️ ${data.likes}` : ''}
                                     </div>
                                 </div>
                                 <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'};">
