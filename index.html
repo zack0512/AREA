@@ -55,6 +55,30 @@
             gap: 8px;
         }
 
+        /* 📌 頂部置頂公告欄樣式 */
+        .pinned-announcement-bar {
+            background: #e6f9ed;
+            border-bottom: 1px solid #b2f0c7;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #047833;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        .announcement-content {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
         /* 🔔 左上角動態浮動通知 Toast 樣式 */
         .notification-toast {
             position: absolute;
@@ -164,7 +188,6 @@
             flex-direction: row-reverse;
         }
 
-        /* 大頭貼樣式 */
         .chat-avatar {
             width: 36px;
             height: 36px;
@@ -226,6 +249,19 @@
             background-color: #ffffff;
             color: #222;
             border-top-left-radius: 4px;
+        }
+
+        /* 大貼圖特有樣式（無氣泡底色） */
+        .sticker-bubble {
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+        .sticker-img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            display: block;
         }
 
         .read-status {
@@ -355,7 +391,7 @@
         .input-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .line-plus-btn {
@@ -375,6 +411,53 @@
             user-select: none;
         }
         .line-plus-btn:hover { background: #e4e6eb; color: var(--line-green); }
+
+        .sticker-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .sticker-btn:hover { background: #e4e6eb; }
+
+        /* 🤩 LINE 貼圖選擇器彈窗 */
+        .sticker-picker-menu {
+            position: absolute;
+            bottom: 60px;
+            right: 10px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+            padding: 10px;
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            z-index: 100;
+            width: 260px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+        }
+        .sticker-option {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            border-radius: 6px;
+            padding: 2px;
+        }
+        .sticker-option:hover {
+            transform: scale(1.15);
+            background: #f0f2f5;
+        }
 
         .line-action-menu {
             position: absolute;
@@ -526,6 +609,7 @@
             transition: background 0.2s;
         }
         .sheet-btn:hover { background: #eef2f5; }
+        .sheet-btn.admin-pin { color: #047833; background: #e6f9ed; }
         .sheet-btn.danger { color: #ff4757; }
         .sheet-btn.cancel { background: #e2e8f0; color: #555; margin-top: 4px; }
 
@@ -587,6 +671,15 @@
             <span id="userStatusText" style="font-size: 12px; color: #888;">未登入</span>
         </div>
 
+        <!-- 📌 頂部置頂公告欄 -->
+        <div id="pinnedBanner" class="pinned-announcement-bar">
+            <div class="announcement-content">
+                <span>📢 <strong>置頂公告：</strong></span>
+                <span id="pinnedText">無公告</span>
+            </div>
+            <button id="unpinBtn" onclick="unpinAnnouncement()" style="display:none; color:#ff4757; font-weight:bold; font-size:11px; margin-left:8px;">取消釘選</button>
+        </div>
+
         <!-- 📄 頁面切換內容區 -->
         <div class="page-content">
             
@@ -616,6 +709,18 @@
                         <div class="menu-item" onclick="shareLocation()">📍 分享位置</div>
                     </div>
 
+                    <!-- 🤩 LINE 大貼圖選擇面板 -->
+                    <div id="stickerPicker" class="sticker-picker-menu">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712010.png" class="sticker-option" onclick="sendSticker(this.src)">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="sticker-option" onclick="sendSticker(this.src)">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712108.png" class="sticker-option" onclick="sendSticker(this.src)">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712038.png" class="sticker-option" onclick="sendSticker(this.src)">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712000.png" class="sticker-option" onclick="sendSticker(this.src)">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712015.png" class="sticker-option" onclick="sendSticker(this.src)">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="sticker-option" onclick="sendSticker(this.src)">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712080.png" class="sticker-option" onclick="sendSticker(this.src)">
+                    </div>
+
                     <div id="replyBanner" class="reply-banner" style="display: none;">
                         <span>回覆：<strong id="replyAuthorName"></strong></span>
                         <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#047833; cursor:pointer; font-weight:bold;">✕</button>
@@ -630,6 +735,7 @@
 
                     <div class="input-row">
                         <div class="line-plus-btn" id="plusBtn" title="更多功能">＋</div>
+                        <div class="sticker-btn" id="stickerPickerBtn" title="選擇貼圖">😊</div>
                         <textarea id="text" class="line-textarea" placeholder="輸入訊息..." required></textarea>
                         <button type="submit" id="submitBtn" class="line-send-btn" title="傳送">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -641,7 +747,6 @@
             <!-- 👤 帳號頁面 (Tab 2) -->
             <div id="profilePage" class="tab-page">
                 <div class="profile-container">
-                    <!-- 登入前提示 -->
                     <div id="profileLoggedOut" style="text-align: center; padding: 40px 20px;">
                         <h3 style="color: #444; margin-bottom: 15px;">您尚未登入會員</h3>
                         <div style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.05); text-align:left; width:280px; margin:0 auto;">
@@ -653,7 +758,6 @@
                         </div>
                     </div>
 
-                    <!-- 登入後個人資訊 -->
                     <div id="profileLoggedIn" style="display: none; width: 100%; max-width: 400px; text-align: center;">
                         <div class="profile-avatar-wrapper">
                             <img id="myProfileAvatar" class="profile-avatar" src="" alt="大頭貼">
@@ -693,6 +797,7 @@
             <div style="font-size: 12px; color: #888; text-align: center; margin-bottom: 4px;">訊息選項</div>
             <button class="sheet-btn" onclick="sheetAction('like')">❤️ 按讚</button>
             <button class="sheet-btn" onclick="sheetAction('reply')">↩️ 回覆訊息</button>
+            <button class="sheet-btn admin-pin" id="sheetPinBtn" style="display:none;" onclick="sheetAction('pin')">📌 釘選為公告</button>
             <button class="sheet-btn" id="sheetEditBtn" onclick="sheetAction('edit')">✏️ 修改訊息</button>
             <button class="sheet-btn danger" id="sheetDeleteBtn" onclick="sheetAction('delete')">🗑️ 刪除訊息</button>
             <button class="sheet-btn cancel" onclick="closeActionSheet()">取消</button>
@@ -747,6 +852,7 @@
         const commentsRef = ref(db, 'comments');
         const onlineUsersRef = ref(db, 'online_users');
         const usersProfileRef = ref(db, 'users_profile');
+        const pinnedRef = ref(db, 'pinned_announcement');
 
         const form = document.getElementById('commentForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -754,6 +860,12 @@
         const textArea = document.getElementById('text');
         const plusBtn = document.getElementById('plusBtn');
         const actionMenu = document.getElementById('actionMenu');
+        const stickerPickerBtn = document.getElementById('stickerPickerBtn');
+        const stickerPicker = document.getElementById('stickerPicker');
+
+        const pinnedBanner = document.getElementById('pinnedBanner');
+        const pinnedText = document.getElementById('pinnedText');
+        const unpinBtn = document.getElementById('unpinBtn');
 
         const userStatusText = document.getElementById('userStatusText');
         const headerTitle = document.getElementById('headerTitle');
@@ -767,7 +879,6 @@
         const myProfileName = document.getElementById('myProfileName');
         const myProfileEmail = document.getElementById('myProfileEmail');
 
-        // Notification Toast 元素
         const notificationToast = document.getElementById('notificationToast');
         const toastAvatar = document.getElementById('toastAvatar');
         const toastAuthorName = document.getElementById('toastAuthorName');
@@ -781,6 +892,7 @@
         const imageFileName = document.getElementById('imageFileName');
 
         const actionSheet = document.getElementById('actionSheet');
+        const sheetPinBtn = document.getElementById('sheetPinBtn');
         const actionModal = document.getElementById('actionModal');
         const editContentContainer = document.getElementById('editContentContainer');
         const passwordInputGroup = document.getElementById('passwordInputGroup');
@@ -803,6 +915,48 @@
 
         let usersProfiles = {};
         let isInitialLoad = true;
+
+        // 📌 監聽置頂公告
+        onValue(pinnedRef, (snapshot) => {
+            if (snapshot.exists() && snapshot.val().text) {
+                pinnedText.innerText = snapshot.val().text;
+                pinnedBanner.style.display = 'flex';
+                if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                    unpinBtn.style.display = 'inline-block';
+                }
+            } else {
+                pinnedBanner.style.display = 'none';
+            }
+        });
+
+        // 📌 管理員取消釘選
+        window.unpinAnnouncement = function() {
+            if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                set(pinnedRef, null);
+            }
+        };
+
+        // 🤩 選擇並傳送貼圖
+        window.sendSticker = function(stickerSrc) {
+            if (!currentUser) return alert("請先登入！");
+            push(commentsRef, {
+                uid: currentUser.uid,
+                author: currentUser.displayName || "會員",
+                email: currentUser.email,
+                text: null,
+                mediaUrl: stickerSrc,
+                mediaType: 'sticker',
+                likes: 0,
+                timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+            });
+            stickerPicker.style.display = 'none';
+        };
+
+        stickerPickerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            stickerPicker.style.display = stickerPicker.style.display === 'grid' ? 'none' : 'grid';
+            actionMenu.style.display = 'none';
+        });
 
         onValue(usersProfileRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -830,7 +984,8 @@
             toastBadgeContainer.innerHTML = (email === ADMIN_EMAIL) ? '<span class="admin-badge">👑 版主</span>' : '';
 
             let previewText = text || '';
-            if (imageUrl || mediaUrl || mediaType === 'image') previewText = '📷 傳送了一張圖片';
+            if (mediaType === 'sticker') previewText = '🤩 傳送了一個大貼圖';
+            else if (imageUrl || mediaUrl || mediaType === 'image') previewText = '📷 傳送了一張圖片';
             else if (mediaType === 'video') previewText = '🎬 傳送了一段影片';
             else if (mediaType === 'doc') previewText = '📄 傳送了一個檔案';
 
@@ -898,6 +1053,14 @@
 
         function openActionSheet(key, uid, author, text) {
             activeSheetKey = key; activeSheetUid = uid; activeSheetAuthor = author; activeSheetText = text;
+            
+            // 版主釘選公告按鈕顯隱
+            if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                sheetPinBtn.style.display = 'block';
+            } else {
+                sheetPinBtn.style.display = 'none';
+            }
+
             actionSheet.style.display = 'flex';
         }
 
@@ -913,6 +1076,12 @@
 
             if (action === 'like') handleLike(key);
             else if (action === 'reply') { switchTab('chat'); startReply(key, author, text); }
+            else if (action === 'pin') {
+                if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                    set(pinnedRef, { text: `${author}: ${text || '（媒體內容）'}` });
+                    alert("📌 已將訊息釘選至頂部公告欄！");
+                }
+            }
             else if (action === 'edit') handleEdit(key, uid);
             else if (action === 'delete') handleDelete(key, uid);
         };
@@ -920,10 +1089,14 @@
         plusBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             actionMenu.style.display = actionMenu.style.display === 'flex' ? 'none' : 'flex';
+            stickerPicker.style.display = 'none';
         });
 
         window.closeActionMenu = function() { actionMenu.style.display = 'none'; };
-        document.addEventListener('click', () => { actionMenu.style.display = 'none'; });
+        document.addEventListener('click', () => { 
+            actionMenu.style.display = 'none'; 
+            stickerPicker.style.display = 'none';
+        });
 
         onValue(onlineUsersRef, (snapshot) => {
             onlineCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 1;
@@ -1017,6 +1190,10 @@
                 myProfileName.innerHTML = `${escapeHTML(name)} ${isAdmin ? '<span class="admin-badge">👑 版主</span>' : ''}`;
                 myProfileEmail.innerText = user.email;
 
+                if (isAdmin && pinnedBanner.style.display !== 'none') {
+                    unpinBtn.style.display = 'inline-block';
+                }
+
                 const snap = await get(ref(db, `users_profile/${user.uid}`));
                 if (snap.exists() && snap.val().avatar) {
                     myProfileAvatar.src = snap.val().avatar;
@@ -1081,9 +1258,9 @@
                     author: currentUser.displayName || "會員",
                     email: currentUser.email,
                     text: text,
-                    mediaUrl: selectedFileType === 'image' ? mediaUrl : mediaUrl, // 同步支援
+                    mediaUrl: mediaUrl,
                     mediaType: selectedFileType,
-                    imageUrl: selectedFileType === 'image' ? mediaUrl : null, // 為了相容舊結構同時寫入 imageUrl
+                    imageUrl: selectedFileType === 'image' ? mediaUrl : null,
                     fileName: selectedFileObj ? selectedFileObj.name : null,
                     fileSize: selectedFileObj ? (selectedFileObj.size / 1024).toFixed(1) + ' KB' : null,
                     likes: 0,
@@ -1173,13 +1350,15 @@
             const badge = data.email === ADMIN_EMAIL ? `<span class="admin-badge">👑 版主</span>` : '';
             const quote = data.replyToAuthor ? `<div class="quote-box"><strong>@${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}</div>` : '';
             
-            // 💡 同時相容舊的 imageUrl 與新的 mediaUrl
+            const isSticker = data.mediaType === 'sticker';
             const activeImage = data.imageUrl || (data.mediaType === 'image' ? data.mediaUrl : null);
             const activeVideo = (data.mediaType === 'video' ? data.mediaUrl : null);
             const activeDoc = (data.mediaType === 'doc' ? data.mediaUrl : null);
 
             let mediaHTML = '';
-            if (activeImage) {
+            if (isSticker) {
+                mediaHTML = `<img src="${data.mediaUrl}" class="sticker-img">`;
+            } else if (activeImage) {
                 mediaHTML = `<div class="file-attachment"><img src="${activeImage}" onclick="openLightbox('${activeImage}')"></div>`;
             } else if (activeVideo) {
                 mediaHTML = `<div class="file-attachment"><video src="${activeVideo}" controls></video></div>`;
@@ -1209,14 +1388,14 @@
                         <div class="chat-content-box">
                             <div class="chat-author-name">${safeAuthor} ${badge}</div>
                             <div class="chat-meta-container">
-                                <div class="chat-bubble" 
+                                <div class="chat-bubble ${isSticker ? 'sticker-bubble' : ''}" 
                                      ontouchstart="handleTouchStart('${key}', '${data.uid}', '${safeAuthor}', '${safeText}')"
                                      ontouchend="handleTouchEnd()"
                                      onmousedown="handleTouchStart('${key}', '${data.uid}', '${safeAuthor}', '${safeText}')"
                                      onmouseup="handleTouchEnd()"
                                      onmouseleave="handleTouchEnd()">
                                     ${quote}
-                                    <div id="text-${key}">${formattedText}</div>
+                                    ${data.text ? `<div id="text-${key}">${formattedText}</div>` : ''}
                                     ${mediaHTML}
                                     <div style="margin-top: 4px; font-size: 11px; color: #ff4757;">
                                         ${data.likes > 0 ? `❤️ ${data.likes}` : ''}
