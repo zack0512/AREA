@@ -8,23 +8,25 @@
     <link rel="icon" type="image/jpeg" href="IMG_20261005_171430.jpg">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background: #eef2f5; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* 修正手機版高度與排版，避免底部工具列被切掉 */
+        body { background: #eef2f5; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
         /* 頂部導覽列 */
-        .area-header { background: #00b900; color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: bold; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
+        .area-header { background: #00b900; color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: bold; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; flex-shrink: 0; }
         .area-header-title { display: flex; align-items: center; gap: 10px; }
         .area-header-title img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; background: white; }
 
         /* 內容區塊 */
-        .content-container { flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-        .tab-content { display: none; flex: 1; flex-direction: column; height: 100%; overflow: hidden; }
+        .content-container { flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; min-height: 0; }
+        .tab-content { display: none; flex: 1; flex-direction: column; height: 100%; overflow: hidden; min-height: 0; }
         .tab-content.active { display: flex; }
 
         /* 釘選公告列 */
-        #pinnedAnnouncement { background: #fff8e1; border-left: 4px solid #ffc107; padding: 8px 14px; font-size: 13px; display: none; align-items: center; justify-content: space-between; border-bottom: 1px solid #e0e0e0; }
+        #pinnedAnnouncement { background: #fff8e1; border-left: 4px solid #ffc107; padding: 8px 14px; font-size: 13px; display: none; align-items: center; justify-content: space-between; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; }
 
         /* 聊天室訊息串 */
-        #chatMessages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #7494c0; }
+        #chatMessages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #7494c0; min-height: 0; }
         .message-bubble { max-width: 75%; padding: 10px 14px; border-radius: 12px; position: relative; word-break: break-word; font-size: 14px; line-height: 1.4; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .message-incoming { align-self: flex-start; background: white; color: #333; border-top-left-radius: 2px; }
         .message-outgoing { align-self: flex-end; background: #85e21f; color: #111; border-top-right-radius: 2px; }
@@ -32,9 +34,9 @@
         .msg-time { font-size: 9px; color: #888; text-align: right; margin-top: 4px; }
 
         /* 輸入框與工具列 */
-        .chat-input-bar { background: white; padding: 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #ddd; }
+        .chat-input-bar { background: white; padding: 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #ddd; flex-shrink: 0; }
         .chat-input-bar input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 14px; }
-        .chat-btn { background: #00b900; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .chat-btn { background: #00b900; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; flex-shrink: 0; }
         .chat-btn:active { background: #009900; }
 
         /* 貼圖選擇面板 */
@@ -43,7 +45,7 @@
         .sticker-option:hover { transform: scale(1.05); background: #f0f0f0; }
 
         /* 底部導覽列 */
-        .area-nav { display: flex; background: white; border-top: 1px solid #ddd; height: 55px; }
+        .area-nav { display: flex; background: white; border-top: 1px solid #ddd; height: 55px; flex-shrink: 0; z-index: 10; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; color: #666; cursor: pointer; border: none; background: none; }
         .nav-item.active { color: #00b900; font-weight: bold; }
 
@@ -141,7 +143,6 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, set, onChildAdded, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // 已代入你的真實 Firebase 專案設定
         const firebaseConfig = {
           apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
           authDomain: "my-project-zack0512.firebaseapp.com",
@@ -158,10 +159,9 @@
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
-        const ADMIN_EMAIL = "11550252@tajh.tp.edu.tw"; // 版主信箱
+        const ADMIN_EMAIL = "11550252@tajh.tp.edu.tw";
         let currentUser = null;
 
-        // 監聽登入狀態
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             const loggedOutDiv = document.getElementById('profileLoggedOut');
@@ -191,19 +191,16 @@
             }
         });
 
-        // Google 登入
         window.loginWithGoogle = function() {
             signInWithPopup(auth, googleProvider).catch((error) => {
                 alert("登入失敗：" + error.message);
             });
         };
 
-        // 登出
         window.logout = function() {
             signOut(auth);
         };
 
-        // 底部分頁切換
         window.switchTab = function(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -211,13 +208,11 @@
             btn.classList.add('active');
         };
 
-        // 貼圖面板開關
         window.toggleStickerPicker = function() {
             const picker = document.getElementById('stickerPicker');
             picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
         };
 
-        // 發送文字訊息
         window.sendMessage = function() {
             if (!currentUser) {
                 alert("請先登入 Google 帳號才能發言！");
@@ -239,7 +234,6 @@
             input.value = '';
         };
 
-        // 發送貼圖
         window.sendSticker = function(url) {
             if (!currentUser) {
                 alert("請先登入！");
@@ -257,7 +251,6 @@
             toggleStickerPicker();
         };
 
-        // 版主修改釘選公告
         window.updatePinnedAnnouncement = function() {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
             const newAnnounce = prompt("請輸入新的釘選公告內容：");
@@ -269,7 +262,6 @@
             }
         };
 
-        // 即時監聽釘選公告
         onValue(ref(db, 'pinnedAnnouncement'), (snapshot) => {
             const pinBar = document.getElementById('pinnedAnnouncement');
             const pinText = document.getElementById('pinnedText');
@@ -282,7 +274,6 @@
             }
         });
 
-        // 即時監聽訊息
         const messagesRef = ref(db, 'messages');
         onChildAdded(messagesRef, (snapshot) => {
             const msg = snapshot.val();
