@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AREA 聊天室</title>
     <!-- 瀏覽器分頁 Favicon -->
-    <link rel="icon" type="image/jpeg" href="1000017741.jpg">
+    <link rel="icon" type="image/jpeg" href="IMG_20261005_171430.jpg">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background: #eef2f5; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -59,7 +59,7 @@
     <!-- 頂部 Header -->
     <header class="area-header">
         <div class="area-header-title">
-            <img src="1000017741.jpg" alt="AREA Logo">
+            <img src="IMG_20261005_171430.jpg" alt="AREA Logo">
             <span>AREA 聊天室</span>
         </div>
     </header>
@@ -141,15 +141,16 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, set, onChildAdded, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // TODO: 請替換成你真實的 Firebase 專案設定
+        // 已代入你的真實 Firebase 專案設定
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+          apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
+          authDomain: "my-project-zack0512.firebaseapp.com",
+          databaseURL: "https://my-project-zack0512-default-rtdb.firebaseio.com",
+          projectId: "my-project-zack0512",
+          storageBucket: "my-project-zack0512.firebasestorage.app",
+          messagingSenderId: "972310414233",
+          appId: "1:972310414233:web:39c19e88ee71c22b530908",
+          measurementId: "G-BVFSR4Z3B5"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -171,7 +172,6 @@
                 loggedOutDiv.style.display = 'none';
                 loggedInDiv.style.display = 'block';
                 
-                // 固定名稱以 Email 前綴或 Google 名稱呈現，絕不顯示「會員」
                 const fixedName = user.email ? user.email.split('@')[0] : (user.displayName || "成員");
                 const isAdmin = (user.email === ADMIN_EMAIL);
 
@@ -179,7 +179,6 @@
                 document.getElementById('userEmail').textContent = user.email;
                 document.getElementById('userAvatar').src = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 
-                // 若為版主，顯示釘選公告修改按鈕
                 if (isAdmin) {
                     adminPinBtn.style.display = 'inline-block';
                 } else {
