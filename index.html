@@ -205,6 +205,11 @@
             background: #ccc;
             flex-shrink: 0;
             border: 1.5px solid #fff;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .chat-avatar:hover {
+            transform: scale(1.08);
         }
 
         .chat-content-box {
@@ -399,7 +404,26 @@
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
             font-size: 12px;
+            user-select: none;
         }
+
+        /* 更換大頭貼專屬彈出選單 */
+        .avatar-menu {
+            position: absolute;
+            bottom: 35px;
+            right: -60px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 100;
+            width: 150px;
+            border: 1px solid #eee;
+        }
+
         .profile-card {
             background: #ffffff;
             width: 100%;
@@ -807,9 +831,19 @@
                     <div id="profileLoggedIn" style="display: none; width: 100%; max-width: 400px; text-align: center;">
                         <div class="profile-avatar-wrapper">
                             <img id="myProfileAvatar" class="profile-avatar" src="" alt="大頭貼">
-                            <label for="avatarUploadInput" class="avatar-upload-label" title="更換大頭貼">📷</label>
-                            <!-- 📷 直接啟動前置相機進行拍照 (capture="user") -->
-                            <input type="file" id="avatarUploadInput" accept="image/*" capture="user" style="display: none;" onchange="uploadMyAvatar(this)">
+                            <div class="avatar-upload-label" id="avatarUploadToggleBtn" title="更換大頭貼">📷</div>
+                            
+                            <!-- 📷 更換大頭貼選單：選擇檔案或相機拍照 -->
+                            <div id="avatarMenu" class="avatar-menu">
+                                <label class="menu-item" onclick="closeAvatarMenu()">
+                                    📁 選擇照片
+                                    <input type="file" accept="image/*" style="display: none;" onchange="uploadMyAvatar(this)">
+                                </label>
+                                <label class="menu-item" onclick="closeAvatarMenu()">
+                                    📷 開啟相機
+                                    <input type="file" accept="image/*" capture="user" style="display: none;" onchange="uploadMyAvatar(this)">
+                                </label>
+                            </div>
                         </div>
                         <h2 id="myProfileName" style="color: #333; margin-bottom: 5px; font-weight: bold;"></h2>
                         <p id="myProfileEmail" style="color: #666; font-size: 13px; margin-bottom: 20px;"></p>
@@ -848,6 +882,16 @@
             <button class="sheet-btn" id="sheetEditBtn" onclick="sheetAction('edit')">✏️ 修改訊息</button>
             <button class="sheet-btn danger" id="sheetDeleteBtn" onclick="sheetAction('delete')">🗑️ 刪除訊息</button>
             <button class="sheet-btn cancel" onclick="closeActionSheet()">取消</button>
+        </div>
+    </div>
+
+    <!-- 👤 點擊發言人頭像查看個人資料彈窗 -->
+    <div id="userProfileModal" class="modal-overlay" onclick="closeUserProfileModal()">
+        <div class="modal-box" onclick="event.stopPropagation()" style="text-align: center;">
+            <img id="modalProfileAvatar" class="profile-avatar" src="" alt="頭貼" style="width: 90px; height: 90px; margin: 0 auto 12px; border-radius: 50%; object-fit: cover; border: 3px solid var(--line-green);">
+            <h3 id="modalProfileName" style="font-weight: bold; font-size: 16px; color: #333; margin-bottom: 4px;"></h3>
+            <p id="modalProfileEmail" style="font-size: 12px; color: #666; margin-bottom: 20px;"></p>
+            <button type="button" class="bg-gray-300 px-4 py-2 rounded text-sm w-full font-bold" onclick="closeUserProfileModal()">關閉</button>
         </div>
     </div>
 
@@ -910,6 +954,9 @@
         const actionMenu = document.getElementById('actionMenu');
         const stickerPickerBtn = document.getElementById('stickerPickerBtn');
         const stickerPicker = document.getElementById('stickerPicker');
+
+        const avatarUploadToggleBtn = document.getElementById('avatarUploadToggleBtn');
+        const avatarMenu = document.getElementById('avatarMenu');
 
         const pinnedBanner = document.getElementById('pinnedBanner');
         const pinnedText = document.getElementById('pinnedText');
@@ -1019,7 +1066,20 @@
             e.stopPropagation();
             stickerPicker.style.display = stickerPicker.style.display === 'grid' ? 'none' : 'grid';
             actionMenu.style.display = 'none';
+            avatarMenu.style.display = 'none';
         });
+
+        // 📷 頭像更換選單開關
+        avatarUploadToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            avatarMenu.style.display = avatarMenu.style.display === 'flex' ? 'none' : 'flex';
+            actionMenu.style.display = 'none';
+            stickerPicker.style.display = 'none';
+        });
+
+        window.closeAvatarMenu = function() {
+            avatarMenu.style.display = 'none';
+        };
 
         onValue(usersProfileRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -1102,6 +1162,27 @@
             }
         };
 
+        // 👤 點擊聊天頭像查看個人資料
+        window.openUserProfile = async function(uid) {
+            if (!uid) return;
+            const profileSnap = await get(ref(db, `users_profile/${uid}`));
+            let profile = profileSnap.exists() ? profileSnap.val() : null;
+
+            const avatar = profile?.avatar || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+            const name = profile?.displayName || "會員";
+            const email = profile?.email || "無公開電子郵件";
+            const isAdmin = email === ADMIN_EMAIL;
+
+            document.getElementById('modalProfileAvatar').src = avatar;
+            document.getElementById('modalProfileName').innerHTML = `${escapeHTML(name)} ${isAdmin ? '<span class="admin-badge">👑 管理員</span>' : ''}`;
+            document.getElementById('modalProfileEmail').innerText = email;
+            document.getElementById('userProfileModal').style.display = 'flex';
+        };
+
+        window.closeUserProfileModal = function() {
+            document.getElementById('userProfileModal').style.display = 'none';
+        };
+
         let pressTimer = null;
         window.handleTouchStart = function(key, uid, author, text) {
             pressTimer = setTimeout(() => {
@@ -1152,12 +1233,14 @@
             e.stopPropagation();
             actionMenu.style.display = actionMenu.style.display === 'flex' ? 'none' : 'flex';
             stickerPicker.style.display = 'none';
+            avatarMenu.style.display = 'none';
         });
 
         window.closeActionMenu = function() { actionMenu.style.display = 'none'; };
         document.addEventListener('click', () => { 
             actionMenu.style.display = 'none'; 
             stickerPicker.style.display = 'none';
+            avatarMenu.style.display = 'none';
         });
 
         onValue(onlineUsersRef, (snapshot) => {
@@ -1266,10 +1349,8 @@
                 if (snap.exists() && snap.val().avatar) {
                     myProfileAvatar.src = snap.val().avatar;
                 } else {
-                    // 若沒有自訂大頭貼，預設採用 Google 帳號的大頭貼
                     const defaultAvatar = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
                     myProfileAvatar.src = defaultAvatar;
-                    // 同步寫入初始使用者檔案
                     if (!snap.exists()) {
                         await set(userProfileRefPath, {
                             email: user.email,
@@ -1462,7 +1543,7 @@
             return `
                 <div class="chat-bubble-wrapper ${isMe ? 'is-me' : 'is-other'}" id="comment-${key}">
                     <div class="chat-user-row">
-                        <img class="chat-avatar" src="${avatarUrl}" data-uid="${data.uid}" alt="頭貼">
+                        <img class="chat-avatar" src="${avatarUrl}" data-uid="${data.uid}" alt="頭貼" title="查看個人資料" onclick="openUserProfile('${data.uid}')">
                         <div class="chat-content-box">
                             <div class="chat-author-name">${safeAuthor} ${badge}</div>
                             <div class="chat-meta-container">
