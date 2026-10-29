@@ -985,7 +985,7 @@
 
             toastAvatar.src = avatarUrl;
             toastAuthorName.innerText = author || '匿名';
-            toastBadgeContainer.innerHTML = (email === ADMIN_EMAIL) ? '<span class="admin-badge">👑 版主</span>' : '';
+            toastBadgeContainer.innerHTML = (email === ADMIN_EMAIL) ? '<span class="admin-badge">👑 管理員</span>' : '';
 
             let previewText = text || '';
             if (mediaType === 'sticker') previewText = '🤩 傳送了一個大貼圖';
@@ -1192,9 +1192,9 @@
                 profileLoggedOut.style.display = 'none';
                 profileLoggedIn.style.display = 'block';
 
-                const isAdmin = user.email === ADMIN_EMAIL;
+                const isAdmin = user.email === 11550252@tajh.tp.edu.tw;
                 const name = user.displayName || "會員";
-                myProfileName.innerHTML = `${escapeHTML(name)} ${isAdmin ? '<span class="admin-badge">👑 版主</span>' : ''}`;
+                myProfileName.innerHTML = `${escapeHTML(name)} ${isAdmin ? '<span class="admin-badge">👑 管理員</span>' : ''}`;
                 myProfileEmail.innerText = user.email;
 
                 if (isAdmin && pinnedBanner.style.display !== 'none') {
@@ -1366,7 +1366,7 @@
             if (!data) return '';
             const key = snapshot.key;
             const isMe = currentUser && currentUser.uid === data.uid;
-            const badge = data.email === ADMIN_EMAIL ? `<span class="admin-badge">👑 版主</span>` : '';
+            const badge = data.email === ADMIN_EMAIL ? `<span class="admin-badge">👑 管理員</span>` : '';
             const quote = data.replyToAuthor ? `<div class="quote-box"><strong>@${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}</div>` : '';
             
             const isSticker = data.mediaType === 'sticker';
