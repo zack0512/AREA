@@ -339,6 +339,31 @@
             font-weight: bold;
         }
 
+        /* 🔒 留言鎖定遮罩層 */
+        .chat-lock-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(116, 148, 168, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .lock-card {
+            background: #ffffff;
+            padding: 25px 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+        }
+
         /* 👤 個人帳號頁面樣式 */
         .profile-container {
             flex: 1;
@@ -694,6 +719,18 @@
             
             <!-- 💬 聊天頁面 (Tab 1) -->
             <div id="chatPage" class="tab-page active">
+                
+                <!-- 🔒 留言保護密碼輸入卡片遮罩 -->
+                <div id="chatLockOverlay" class="chat-lock-overlay">
+                    <div class="lock-card">
+                        <div style="font-size: 32px; margin-bottom: 8px;">🔒</div>
+                        <h3 style="font-weight: bold; font-size: 16px; color: #333; margin-bottom: 6px;">密碼保護</h3>
+                        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">請輸入密碼解鎖以查看留言內容</p>
+                        <input type="password" id="chatPasswordInput" placeholder="請輸入查看密碼" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; margin-bottom: 12px; text-align: center; box-sizing: border-box;">
+                        <button type="button" onclick="unlockComments()" style="width: 100%; background: var(--line-green); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;">解鎖查看</button>
+                    </div>
+                </div>
+
                 <div class="chat-container" id="commentList"></div>
 
                 <!-- 🔻 置底輸入區 -->
@@ -771,7 +808,8 @@
                         <div class="profile-avatar-wrapper">
                             <img id="myProfileAvatar" class="profile-avatar" src="" alt="大頭貼">
                             <label for="avatarUploadInput" class="avatar-upload-label" title="更換大頭貼">📷</label>
-                            <input type="file" id="avatarUploadInput" accept="image/*" style="display: none;" onchange="uploadMyAvatar(this)">
+                            <!-- 📷 直接啟動前置相機進行拍照 (capture="user") -->
+                            <input type="file" id="avatarUploadInput" accept="image/*" capture="user" style="display: none;" onchange="uploadMyAvatar(this)">
                         </div>
                         <h2 id="myProfileName" style="color: #333; margin-bottom: 5px; font-weight: bold;"></h2>
                         <p id="myProfileEmail" style="color: #666; font-size: 13px; margin-bottom: 20px;"></p>
@@ -843,6 +881,7 @@
 
         const ADMIN_EMAIL = "11550252@tajh.tp.edu.tw"; 
         const ADMIN_PASSWORD = "admin1234"; 
+        const VIEW_PASSWORD = "709709"; // 查看留言密碼
 
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
@@ -922,6 +961,26 @@
 
         let usersProfiles = {};
         let isInitialLoad = true;
+
+        // 🔑 留言查看密碼驗證邏輯
+        window.unlockComments = function() {
+            const inputPwd = document.getElementById('chatPasswordInput').value.trim();
+            if (inputPwd === VIEW_PASSWORD) {
+                sessionStorage.setItem('comments_unlocked', 'true');
+                document.getElementById('chatLockOverlay').style.display = 'none';
+            } else {
+                alert("密碼錯誤，無法解鎖留言！");
+            }
+        };
+
+        // 檢查是否已解鎖過留言
+        if (sessionStorage.getItem('comments_unlocked') === 'true') {
+            document.getElementById('chatLockOverlay').style.display = 'none';
+        }
+
+        document.getElementById('chatPasswordInput').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') unlockComments();
+        });
 
         onValue(pinnedRef, (snapshot) => {
             if (snapshot.exists() && snapshot.val().text) {
@@ -1192,7 +1251,7 @@
                 profileLoggedOut.style.display = 'none';
                 profileLoggedIn.style.display = 'block';
 
-                const isAdmin = user.email === 11550252@tajh.tp.edu.tw;
+                const isAdmin = user.email === ADMIN_EMAIL;
                 const name = user.displayName || "會員";
                 myProfileName.innerHTML = `${escapeHTML(name)} ${isAdmin ? '<span class="admin-badge">👑 管理員</span>' : ''}`;
                 myProfileEmail.innerText = user.email;
