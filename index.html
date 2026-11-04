@@ -1329,15 +1329,22 @@
         });
 
         onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
-            if (user) {
-                userStatusText.innerText = "已連線";
-                profileLoggedOut.style.display = 'none';
-                profileLoggedIn.style.display = 'block';
+    currentUser = user;
+    if (user) {
+        userStatusText.innerText = "已連線";
+        profileLoggedOut.style.display = 'none';
+        profileLoggedIn.style.display = 'block';
 
-                const isAdmin = user.email === ADMIN_EMAIL;
-                const name = user.displayName || "會員";
-                myProfileName.innerHTML = `${escapeHTML(name)} ${isAdmin ? '<span class="admin-badge">👑 管理員</span>' : ''}`;
+        const isAdmin = user.email === ADMIN_EMAIL;
+        const name = user.displayName || "會員";
+        myProfileName.innerHTML = `${escapeHTML(name)} ${isAdmin ? '<span class="admin-badge">👑 管理員</span>' : ''}`;
+        
+        // 👉 這裡原本就會把信箱指定給 myProfileEmail 顯示在帳號頁面
+        myProfileEmail.innerText = user.email; 
+        
+        // 如果你想順便在主控台印出來檢查，也可以在這裡加上這行：
+        console.log("目前登入的 Google Email 是：", user.email);
+        ...
                 myProfileEmail.innerText = user.email;
 
                 if (isAdmin && pinnedBanner.style.display !== 'none') {
