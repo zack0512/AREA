@@ -2,81 +2,124 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AREA - LINE Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --line-green: #06C755;
             --line-green-hover: #05b34c;
-            --line-bg: #7494a8; /* LINE 經典聊天室背景灰藍色 */
-            --bubble-user: #85e249; /* 自己訊息氣泡綠1 */
+            --line-bg: #7494a8;
+            --bubble-user: #85e249;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             max-width: 600px; 
             margin: 0 auto; 
-            padding: 10px; 
+            padding: 0; 
             background-color: #eef2f5; 
-            height: 100vh;
+            height: 100dvh; /* 修正手機瀏覽器動態高度 */
             display: flex;
-            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        @media (min-width: 640px) {
+            body {
+                padding: 12px;
+            }
+            .main-container {
+                border-radius: 16px;
+                height: calc(100dvh - 24px);
+            }
         }
 
         .main-container {
             background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            height: 100dvh;
             width: 100%;
             overflow: hidden;
             position: relative;
         }
 
         .line-header {
-            padding: 10px 15px;
+            padding: 10px 16px;
             border-bottom: 1px solid #eee;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-shrink: 0;
+            z-index: 20;
         }
 
         .line-header-title {
             color: var(--line-green);
             font-weight: 800;
-            font-size: 18px;
+            font-size: 17px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* 🖼️ Logo 樣式優化 */
         .header-logo {
-            height: 34px;
-            width: auto;
+            height: 32px;
+            width: 32px;
             border-radius: 8px;
-            object-fit: contain;
+            object-fit: cover;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: #e6f9ed;
         }
 
-        /* 📌 頂部置頂公告欄樣式 */
+        .online-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #555;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .online-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #cbd5e1;
+        }
+        .online-dot.connected {
+            background: var(--line-green);
+            box-shadow: 0 0 0 2px rgba(6, 199, 85, 0.2);
+        }
+
+        /* 📌 頂部置頂公告欄 */
         .pinned-announcement-bar {
-            background: #e6f9ed;
+            background: rgba(230, 249, 237, 0.95);
+            backdrop-filter: blur(6px);
             border-bottom: 1px solid #b2f0c7;
-            padding: 8px 12px;
+            padding: 8px 14px;
             font-size: 13px;
             color: #047833;
             display: none;
             align-items: center;
             justify-content: space-between;
             flex-shrink: 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            z-index: 10;
+            z-index: 15;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pinned-announcement-bar:hover {
+            background: #dcfce7;
         }
         .announcement-content {
             display: flex;
@@ -88,31 +131,33 @@
             flex: 1;
         }
 
-        /* 🔔 左上角動態浮動通知 Toast 樣式 */
+        /* 🔔 浮動通知 Toast */
         .notification-toast {
             position: absolute;
-            top: 15px;
-            left: 15px;
+            top: 60px;
+            left: 12px;
+            right: 12px;
             z-index: 2500;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            border-radius: 14px;
             padding: 10px 14px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.16);
             display: flex;
             align-items: center;
             gap: 10px;
-            max-width: 80%;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.06);
             cursor: pointer;
-            transform: translateX(-120%);
+            transform: translateY(-150%);
             opacity: 0;
+            pointer-events: none;
             transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .notification-toast.show {
-            transform: translateX(0);
+            transform: translateY(0);
             opacity: 1;
+            pointer-events: auto;
         }
 
         .toast-avatar {
@@ -128,12 +173,13 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            flex: 1;
         }
 
         .toast-name {
             font-size: 12px;
             font-weight: bold;
-            color: #333;
+            color: #222;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -145,10 +191,10 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-top: 1px;
+            margin-top: 2px;
         }
 
-        /* 頁面切換內容區 */
+        /* 頁面切換 */
         .page-content {
             flex: 1;
             display: flex;
@@ -168,19 +214,25 @@
             display: flex;
         }
 
-        /* 💬 聊天頁面 */
+        /* 💬 聊天區 */
         .chat-container {
             flex: 1;
             background: var(--line-bg);
-            padding: 15px;
+            padding: 16px 14px;
             overflow-y: auto;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+            scroll-behavior: smooth;
         }
 
         .chat-bubble-wrapper {
             display: flex;
             flex-direction: column;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
+            animation: msgFadeIn 0.2s ease-out;
+        }
+
+        @keyframes msgFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .chat-bubble-wrapper.is-me { align-items: flex-end; }
@@ -202,24 +254,21 @@
             height: 36px;
             border-radius: 50%;
             object-fit: cover;
-            background: #ccc;
+            background: #e2e8f0;
             flex-shrink: 0;
-            border: 1.5px solid #fff;
+            border: 1.5px solid rgba(255,255,255,0.85);
             cursor: pointer;
             transition: transform 0.15s;
         }
-        .chat-avatar:hover {
-            transform: scale(1.08);
-        }
+        .chat-avatar:hover { transform: scale(1.06); }
 
         .chat-content-box {
             display: flex;
             flex-direction: column;
+            max-width: 100%;
         }
 
-        .chat-bubble-wrapper.is-me .chat-content-box {
-            align-items: flex-end;
-        }
+        .chat-bubble-wrapper.is-me .chat-content-box { align-items: flex-end; }
 
         .chat-author-name {
             font-size: 11px;
@@ -228,7 +277,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.25);
         }
 
         .chat-meta-container {
@@ -245,12 +294,17 @@
             padding: 9px 13px;
             border-radius: 16px;
             font-size: 14px;
-            line-height: 1.4;
+            line-height: 1.45;
             position: relative;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.12);
             word-break: break-word;
+            white-space: pre-wrap; /* 保留換行格式 */
             cursor: pointer;
             user-select: none;
+            transition: filter 0.15s;
+        }
+        .chat-bubble:active {
+            filter: brightness(0.95);
         }
 
         .chat-bubble-wrapper.is-me .chat-bubble {
@@ -265,49 +319,71 @@
             border-top-left-radius: 4px;
         }
 
-        /* 大貼圖特有樣式 */
         .sticker-bubble {
             background: transparent !important;
             box-shadow: none !important;
             padding: 0 !important;
         }
         .sticker-img {
-            width: 120px;
-            height: 120px;
+            width: 115px;
+            height: 115px;
             object-fit: contain;
             display: block;
         }
 
+        .time-read-col {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            line-height: 1.2;
+        }
+        .chat-bubble-wrapper.is-me .time-read-col { align-items: flex-end; }
+        .chat-bubble-wrapper.is-other .time-read-col { align-items: flex-start; }
+
         .read-status {
             font-size: 10px;
             color: #ffffff;
-            font-weight: bold;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-            margin-bottom: 2px;
-        }
-
-        .quote-box {
-            background: rgba(0, 0, 0, 0.06);
-            border-left: 3px solid var(--line-green);
-            padding: 4px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #444;
-            margin-bottom: 4px;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.35);
         }
 
         .chat-time {
             font-size: 10px;
             color: rgba(255, 255, 255, 0.85);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+        }
+
+        .quote-box {
+            background: rgba(0, 0, 0, 0.06);
+            border-left: 3px solid var(--line-green);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #444;
+            margin-bottom: 5px;
+            white-space: normal;
+        }
+
+        .likes-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 7px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #ff4757;
+            font-weight: bold;
+            margin-top: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .file-attachment img { 
             max-width: 100%; 
-            max-height: 200px; 
+            max-height: 220px; 
             border-radius: 10px; 
             display: block; 
-            margin-top: 6px; 
+            margin-top: 4px; 
             cursor: zoom-in;
         }
         .file-attachment video {
@@ -315,65 +391,64 @@
             max-height: 220px;
             border-radius: 10px;
             display: block;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .doc-card {
-            background: #f1f3f5;
-            border: 1px solid #dcdcdc;
-            padding: 10px 12px;
-            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 9px 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-top: 6px;
+            margin-top: 4px;
             text-decoration: none;
             color: #333;
+            white-space: normal;
         }
-        .doc-icon { font-size: 24px; }
+        .doc-icon { font-size: 22px; }
         .doc-info { overflow: hidden; }
         .doc-name { font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .doc-size { font-size: 11px; color: #666; }
+        .doc-size { font-size: 11px; color: #64748b; }
 
         .admin-badge {
             background: linear-gradient(135deg, #ff4757, #ff6b81);
             color: white;
             font-size: 9px;
-            padding: 1px 5px;
+            padding: 1px 6px;
             border-radius: 10px;
             font-weight: bold;
+            letter-spacing: 0.3px;
         }
 
-        /* 🔒 留言鎖定遮罩層 */
+        /* 🔒 密碼鎖定遮罩 */
         .chat-lock-overlay {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(116, 148, 168, 0.95);
-            backdrop-filter: blur(5px);
+            inset: 0;
+            background: rgba(116, 148, 168, 0.92);
+            backdrop-filter: blur(8px);
             z-index: 100;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            box-sizing: border-box;
         }
         .lock-card {
             background: #ffffff;
-            padding: 25px 20px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            padding: 28px 22px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
             width: 100%;
-            max-width: 320px;
+            max-width: 310px;
             text-align: center;
         }
 
-        /* 👤 個人帳號頁面樣式 */
+        /* 👤 個人頁面 */
         .profile-container {
             flex: 1;
             background: #f8fafc;
-            padding: 25px 20px;
+            padding: 28px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -381,11 +456,13 @@
         }
         .profile-avatar-wrapper {
             position: relative;
-            margin-bottom: 15px;
+            width: 92px;
+            height: 92px;
+            margin: 0 auto 14px;
         }
         .profile-avatar {
-            width: 90px;
-            height: 90px;
+            width: 92px;
+            height: 92px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid var(--line-green);
@@ -396,29 +473,29 @@
             bottom: 0; right: 0;
             background: var(--line-green);
             color: white;
-            width: 28px; height: 28px;
+            width: 30px; height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            font-size: 12px;
-            user-select: none;
+            font-size: 13px;
+            border: 2px solid #fff;
         }
 
-        /* 更換大頭貼專屬彈出選單 */
         .avatar-menu {
             position: absolute;
-            bottom: 35px;
-            right: -60px;
+            top: 98px;
+            left: 50%;
+            transform: translateX(-50%);
             background: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            padding: 8px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+            padding: 6px;
             display: none;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
             z-index: 100;
             width: 150px;
             border: 1px solid #eee;
@@ -427,17 +504,17 @@
         .profile-card {
             background: #ffffff;
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
             text-align: left;
         }
 
-        /* 🔻 置底 LINE 風格輸入發送區塊 */
+        /* 🔻 底部輸入區 */
         .bottom-input-bar {
             background: #ffffff;
-            border-top: 1px solid #e1e8ed;
+            border-top: 1px solid #e2e8f0;
             padding: 8px 10px;
             display: flex;
             flex-direction: column;
@@ -448,116 +525,99 @@
 
         .input-row {
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             gap: 6px;
         }
 
-        .line-plus-btn {
+        .icon-circle-btn {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: #f0f2f5;
-            color: #555;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-            flex-shrink: 0;
-            user-select: none;
-        }
-        .line-plus-btn:hover { background: #e4e6eb; color: var(--line-green); }
-
-        .sticker-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #f0f2f5;
+            background: #f1f5f9;
+            color: #475569;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
             cursor: pointer;
+            transition: all 0.15s;
             flex-shrink: 0;
             user-select: none;
         }
-        .sticker-btn:hover { background: #e4e6eb; }
+        .icon-circle-btn:hover { background: #e2e8f0; color: var(--line-green); }
 
-        /* 🤩 LINE 貼圖選擇器彈窗 */
         .sticker-picker-menu {
             position: absolute;
-            bottom: 60px;
+            bottom: 58px;
+            left: 10px;
             right: 10px;
             background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-            padding: 10px;
+            border-radius: 14px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.16);
+            padding: 12px;
             display: none;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             z-index: 100;
-            width: 260px;
-            max-height: 200px;
+            max-height: 210px;
             overflow-y: auto;
             border: 1px solid #eee;
         }
         .sticker-option {
-            width: 50px;
-            height: 50px;
+            width: 100%;
+            aspect-ratio: 1;
             object-fit: contain;
             cursor: pointer;
             transition: transform 0.15s ease;
-            border-radius: 6px;
-            padding: 2px;
+            border-radius: 8px;
+            padding: 4px;
         }
         .sticker-option:hover {
             transform: scale(1.15);
-            background: #f0f2f5;
+            background: #f1f5f9;
         }
 
         .line-action-menu {
             position: absolute;
-            bottom: 60px;
+            bottom: 58px;
             left: 10px;
             background: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            padding: 8px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+            padding: 6px;
             display: none;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
             z-index: 100;
-            width: 170px;
+            width: 165px;
             border: 1px solid #eee;
         }
         .menu-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
+            padding: 9px 12px;
             font-size: 13px;
-            color: #333;
+            color: #334155;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
-            text-decoration: none;
+            transition: background 0.15s;
         }
-        .menu-item:hover { background: #f0f2f5; color: var(--line-green); }
+        .menu-item:hover { background: #f1f5f9; color: var(--line-green); }
 
         .line-textarea {
             flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 18px;
+            padding: 8px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 19px;
             font-size: 14px;
-            height: 38px;
-            max-height: 80px;
+            line-height: 1.4;
+            min-height: 38px;
+            max-height: 100px;
             resize: none;
             outline: none;
-            box-sizing: border-box;
             background: #f8fafc;
+            font-family: inherit;
         }
         .line-textarea:focus { border-color: var(--line-green); background: #fff; }
 
@@ -574,15 +634,18 @@
             cursor: pointer;
             flex-shrink: 0;
             box-shadow: 0 2px 6px rgba(6, 199, 85, 0.3);
+            transition: transform 0.1s, background 0.2s;
         }
         .line-send-btn:hover { background: var(--line-green-hover); }
+        .line-send-btn:active { transform: scale(0.92); }
+        .line-send-btn:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 
         .reply-banner {
-            background: #e6f9ed;
-            border: 1px solid #b2f0c7;
-            color: #047833;
-            padding: 4px 10px;
-            border-radius: 6px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 5px 10px;
+            border-radius: 8px;
             font-size: 12px;
             display: flex;
             justify-content: space-between;
@@ -590,21 +653,21 @@
         }
 
         .image-preview-badge {
-            font-size: 11px;
-            color: var(--line-green);
+            font-size: 12px;
+            color: #047833;
             background: #e6f9ed;
-            padding: 2px 8px;
-            border-radius: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
 
-        /* 📱 底部 LINE 導覽列 */
+        /* 📱 底部導覽列 */
         .bottom-nav {
-            height: 56px;
+            height: 54px;
             background: #ffffff;
-            border-top: 1px solid #e1e8ed;
+            border-top: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: space-around;
@@ -612,12 +675,13 @@
         }
         .nav-item {
             flex: 1;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             font-size: 11px;
-            color: #888;
+            color: #94a3b8;
             cursor: pointer;
             user-select: none;
             transition: color 0.2s;
@@ -629,87 +693,101 @@
         }
         .nav-icon { font-size: 18px; }
 
-        /* 👆 長按彈出的動作選單 Modal (Action Sheet) */
+        /* 👆 動作選單 (Action Sheet) */
         .action-sheet-overlay {
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.5);
+            inset: 0;
+            background: rgba(0,0,0,0.45);
             display: none;
             justify-content: center;
             align-items: flex-end;
             z-index: 3000;
-            animation: fadeIn 0.2s;
         }
         .action-sheet-box {
             background: #f8fafc;
             width: 100%;
             max-width: 600px;
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
-            padding: 15px;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+            animation: slideUp 0.2s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
         .sheet-btn {
             background: #ffffff;
             border: none;
-            padding: 14px;
-            border-radius: 10px;
+            padding: 13px;
+            border-radius: 12px;
             font-size: 15px;
-            font-weight: bold;
-            color: #333;
+            font-weight: 600;
+            color: #1e293b;
             cursor: pointer;
             text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: background 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
-        .sheet-btn:hover { background: #eef2f5; }
+        .sheet-btn:active { background: #f1f5f9; }
         .sheet-btn.admin-pin { color: #047833; background: #e6f9ed; }
-        .sheet-btn.danger { color: #ff4757; }
-        .sheet-btn.cancel { background: #e2e8f0; color: #555; margin-top: 4px; }
+        .sheet-btn.danger { color: #ef4444; }
+        .sheet-btn.cancel { background: #e2e8f0; color: #475569; margin-top: 4px; }
 
         /* 標準彈窗 */
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            inset: 0;
             background: rgba(0, 0, 0, 0.5);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 16px;
         }
         .modal-box {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 350px;
+            padding: 22px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 340px;
             text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
-        .modal-box input, .modal-box textarea { width: 100%; margin-bottom: 12px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+        .modal-box input, .modal-box textarea { 
+            width: 100%; 
+            margin-bottom: 12px; 
+            padding: 10px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 8px; 
+            font-size: 14px;
+            outline: none;
+        }
+        .modal-box input:focus, .modal-box textarea:focus {
+            border-color: var(--line-green);
+        }
 
         .lightbox-overlay {
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.88);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
+            cursor: zoom-out;
         }
-        .lightbox-img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
+        .lightbox-img { max-width: 92vw; max-height: 88vh; border-radius: 8px; object-fit: contain; }
     </style>
 </head>
 <body>
 
     <div class="main-container">
-        <!-- 🔔 左上角動態發言/新訊息浮動通知卡片 -->
-        <div id="notificationToast" class="notification-toast" onclick="hideToast()">
+        <!-- 🔔 浮動通知卡片 (點擊跳轉聊天室) -->
+        <div id="notificationToast" class="notification-toast" onclick="handleToastClick()">
             <img id="toastAvatar" class="toast-avatar" src="" alt="大頭貼">
             <div class="toast-content">
                 <div class="toast-name">
@@ -720,22 +798,27 @@
             </div>
         </div>
 
-        <!-- 頂部 Header 結合你的全新 AREA Logo -->
+        <!-- 頂部 Header -->
         <div class="line-header">
             <div class="line-header-title">
-                <img src="IMG_20261005_171430.jpg" alt="AREA Logo" class="header-logo">
+                <img src="IMG_20261005_171430.jpg" 
+                     onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2306C755%22/><text x=%2250%22 y=%2266%22 font-size=%2248%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22 font-family=%22sans-serif%22>709</text></svg>';" 
+                     alt="AREA Logo" class="header-logo">
                 <span id="headerTitle">AREA 709班群</span>
             </div>
-            <span id="userStatusText" style="font-size: 12px; color: #888;">未登入</span>
+            <div class="online-pill">
+                <span id="onlineDot" class="online-dot"></span>
+                <span id="userStatusText">未登入</span>
+            </div>
         </div>
 
         <!-- 📌 頂部置頂公告欄 -->
-        <div id="pinnedBanner" class="pinned-announcement-bar">
+        <div id="pinnedBanner" class="pinned-announcement-bar" onclick="alert('📢 置頂公告：\n' + document.getElementById('pinnedText').innerText)">
             <div class="announcement-content">
-                <span>📢 <strong>置頂公告：</strong></span>
+                <span>📢 <strong>公告：</strong></span>
                 <span id="pinnedText">無公告</span>
             </div>
-            <button id="unpinBtn" onclick="unpinAnnouncement()" style="display:none; color:#ff4757; font-weight:bold; font-size:11px; margin-left:8px;">取消釘選</button>
+            <button id="unpinBtn" onclick="event.stopPropagation(); unpinAnnouncement()" style="display:none; color:#ef4444; font-weight:bold; font-size:11px; margin-left:8px; padding: 2px 6px; background: #fff; border-radius: 4px;">取消釘選</button>
         </div>
 
         <!-- 📄 頁面切換內容區 -->
@@ -744,14 +827,14 @@
             <!-- 💬 聊天頁面 (Tab 1) -->
             <div id="chatPage" class="tab-page active">
                 
-                <!-- 🔒 留言保護密碼輸入卡片遮罩 -->
+                <!-- 🔒 密碼保護遮罩 -->
                 <div id="chatLockOverlay" class="chat-lock-overlay">
                     <div class="lock-card">
-                        <div style="font-size: 32px; margin-bottom: 8px;">🔒</div>
-                        <h3 style="font-weight: bold; font-size: 16px; color: #333; margin-bottom: 6px;">為了保障隱私權</h3>
-                        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">請輸入密碼解鎖以查看班群</p>
-                        <input type="password" id="chatPasswordInput" placeholder="請輸入查看密碼" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; margin-bottom: 12px; text-align: center; box-sizing: border-box;">
-                        <button type="button" onclick="unlockComments()" style="width: 100%; background: var(--line-green); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;">解鎖查看</button>
+                        <div style="font-size: 36px; margin-bottom: 8px;">🔒</div>
+                        <h3 style="font-weight: bold; font-size: 17px; color: #1e293b; margin-bottom: 6px;">班群隱私保護</h3>
+                        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">請輸入通行密碼以查看聊天內容</p>
+                        <input type="password" id="chatPasswordInput" placeholder="輸入密碼" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 15px; margin-bottom: 12px; text-align: center;">
+                        <button type="button" onclick="unlockComments()" style="width: 100%; background: var(--line-green); color: white; border: none; padding: 11px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px;">解鎖進入</button>
                     </div>
                 </div>
 
@@ -776,10 +859,10 @@
                             📄 選擇檔案
                             <input type="file" id="docInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" style="display: none;" onchange="handleMediaSelect(this, 'doc')">
                         </label>
-                        <div class="menu-item" onclick="shareLocation()">📍 分享位置</div>
+                        <div class="menu-item" onclick="shareLocation()">📍 分享目前位置</div>
                     </div>
 
-                    <!-- 🤩 LINE 大貼圖選擇面板 -->
+                    <!-- 🤩 貼圖面板 -->
                     <div id="stickerPicker" class="sticker-picker-menu">
                         <img src="https://cdn-icons-png.flaticon.com/128/16108/16108194.png" class="sticker-option" onclick="sendSticker(this.src)">
                         <img src="https://cdn-icons-png.flaticon.com/256/4213/4213616.png" class="sticker-option" onclick="sendSticker(this.src)">
@@ -794,23 +877,23 @@
                     </div>
 
                     <div id="replyBanner" class="reply-banner" style="display: none;">
-                        <span>回覆：<strong id="replyAuthorName"></strong></span>
-                        <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#047833; cursor:pointer; font-weight:bold;">✕</button>
+                        <span class="truncate">↩️ 回覆：<strong id="replyAuthorName"></strong></span>
+                        <button type="button" onclick="cancelReplyTarget()" style="background:none; border:none; color:#166534; cursor:pointer; font-weight:bold; padding: 0 4px;">✕</button>
                     </div>
 
                     <div id="imageSelectedBanner" style="display: none;">
                         <span class="image-preview-badge">
-                            📎 已選擇：<span id="imageFileName"></span>
-                            <button type="button" onclick="clearSelectedMedia()" style="margin-left:5px; color:#ff4757;">✕</button>
+                            📎 <span id="imageFileName" class="max-w-[200px] truncate"></span>
+                            <button type="button" onclick="clearSelectedMedia()" style="color:#ef4444; font-weight:bold;">✕</button>
                         </span>
                     </div>
 
                     <div class="input-row">
-                        <div class="line-plus-btn" id="plusBtn" title="更多功能">＋</div>
-                        <div class="sticker-btn" id="stickerPickerBtn" title="選擇貼圖">😊</div>
-                        <textarea id="text" class="line-textarea" placeholder="輸入訊息..." required></textarea>
+                        <div class="icon-circle-btn font-bold" id="plusBtn" title="更多功能">＋</div>
+                        <div class="icon-circle-btn" id="stickerPickerBtn" title="選擇貼圖">😊</div>
+                        <textarea id="text" class="line-textarea" rows="1" placeholder="輸入訊息... (Shift+Enter 換行)"></textarea>
                         <button type="submit" id="submitBtn" class="line-send-btn" title="傳送">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>
                     </div>
                 </form>
@@ -819,23 +902,23 @@
             <!-- 👤 帳號頁面 (Tab 2) -->
             <div id="profilePage" class="tab-page">
                 <div class="profile-container">
-                    <div id="profileLoggedOut" style="text-align: center; padding: 40px 20px;">
-                        <h3 style="color: #444; margin-bottom: 15px;">您尚未登入會員</h3>
-                        <div style="background:#fff; padding:24px 20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.05); text-align:center; width:300px; margin:0 auto;">
-                            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">使用 Google 帳號快速登入或註冊，暢聊 AREA 709班群</p>
-                            <button type="button" id="profileGoogleLoginBtn" style="width:100%; background:#4285F4; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);">
+                    <div id="profileLoggedOut" style="text-align: center; padding: 40px 10px; width: 100%;">
+                        <div style="background:#fff; padding:28px 22px; border-radius:16px; box-shadow:0 4px 16px rgba(0,0,0,0.05); text-align:center; max-width:320px; margin:0 auto;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">👋</div>
+                            <h3 style="color: #1e293b; font-weight: bold; font-size: 18px; margin-bottom: 8px;">歡迎來到 AREA 709</h3>
+                            <p style="font-size: 13px; color: #64748b; margin-bottom: 22px;">請使用 Google 帳號登入以同步大頭貼並參與班群聊天</p>
+                            <button type="button" id="profileGoogleLoginBtn" style="width:100%; background:#4285F4; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);">
                                 <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M21.35 11.1H12v2.8h5.35c-.23 1.2-1.3 3.5-5.35 3.5-3.22 0-5.85-2.63-5.85-5.85s2.63-5.85 5.85-5.85c1.83 0 3.06.78 3.76 1.45l2.15-2.15C16.55 3.9 14.47 3 12 3 7.03 3 3 7.03 3 12s4.03 9 9 9c5.2 0 8.65-3.65 8.65-8.8 0-.6-.05-1.05-.15-1.5z"/></svg>
                                 使用 Google 帳號登入
                             </button>
                         </div>
                     </div>
 
-                    <div id="profileLoggedIn" style="display: none; width: 100%; max-width: 400px; text-align: center;">
+                    <div id="profileLoggedIn" style="display: none; width: 100%; max-width: 380px; text-align: center;">
                         <div class="profile-avatar-wrapper">
                             <img id="myProfileAvatar" class="profile-avatar" src="" alt="大頭貼">
                             <div class="avatar-upload-label" id="avatarUploadToggleBtn" title="更換大頭貼">📷</div>
                             
-                            <!-- 📷 更換大頭貼選單：選擇檔案或相機拍照 -->
                             <div id="avatarMenu" class="avatar-menu">
                                 <label class="menu-item" onclick="closeAvatarMenu()">
                                     📁 選擇照片
@@ -847,13 +930,13 @@
                                 </label>
                             </div>
                         </div>
-                        <h2 id="myProfileName" style="color: #333; margin-bottom: 5px; font-weight: bold;"></h2>
-                        <p id="myProfileEmail" style="color: #666; font-size: 13px; margin-bottom: 20px;"></p>
+                        <h2 id="myProfileName" style="color: #1e293b; font-size: 18px; margin-bottom: 4px; font-weight: bold;"></h2>
+                        <p id="myProfileEmail" style="color: #64748b; font-size: 13px; margin-bottom: 22px;"></p>
 
                         <div class="profile-card">
-                            <div style="font-weight: bold; margin-bottom: 10px; color: #444; border-bottom: 1px solid #eee; padding-bottom: 8px;">帳號設定與管理</div>
-                            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">在此可更換您的個人大頭貼，這將同步顯示於所有聊天訊息中。</p>
-                            <button type="button" id="profileLogoutBtn" style="width: 100%; background: #d9534f; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">登出帳號</button>
+                            <div style="font-weight: bold; margin-bottom: 8px; color: #334155; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">帳號與個人化設定</div>
+                            <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 16px;">點擊上方大頭貼右下角的相機圖示，可隨時更換您的專屬頭像，系統將自動壓縮並同步至所有歷史訊息中。</p>
+                            <button type="button" id="profileLogoutBtn" style="width: 100%; background: #fee2e2; color: #dc2626; border: none; padding: 11px; border-radius: 10px; font-weight: bold; cursor: pointer;">登出目前帳號</button>
                         </div>
                     </div>
                 </div>
@@ -861,7 +944,7 @@
 
         </div>
 
-        <!-- 📱 底部 LINE 導覽列 -->
+        <!-- 📱 底部導覽列 -->
         <div class="bottom-nav">
             <div class="nav-item active" onclick="switchTab('chat')">
                 <span class="nav-icon">💬</span>
@@ -874,60 +957,65 @@
         </div>
     </div>
 
-    <!-- 👆 長按彈出的動作選單 (Action Sheet) -->
+    <!-- 👆 長按 / 右鍵彈出的動作選單 (Action Sheet) -->
     <div id="actionSheet" class="action-sheet-overlay" onclick="closeActionSheet()">
         <div class="action-sheet-box" onclick="event.stopPropagation()">
-            <div style="font-size: 12px; color: #888; text-align: center; margin-bottom: 4px;">訊息選項</div>
+            <div style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 2px;">訊息操作</div>
             <button class="sheet-btn" onclick="sheetAction('like')">❤️ 按讚</button>
             <button class="sheet-btn" onclick="sheetAction('reply')">↩️ 回覆訊息</button>
-            <button class="sheet-btn admin-pin" id="sheetPinBtn" style="display:none;" onclick="sheetAction('pin')">📌 釘選為公告</button>
-            <button class="sheet-btn" id="sheetEditBtn" onclick="sheetAction('edit')">✏️ 修改訊息</button>
-            <button class="sheet-btn danger" id="sheetDeleteBtn" onclick="sheetAction('delete')">🗑️ 刪除訊息</button>
+            <button class="sheet-btn admin-pin" id="sheetPinBtn" style="display:none;" onclick="sheetAction('pin')">📌 釘選為班群公告</button>
+            <button class="sheet-btn" id="sheetEditBtn" style="display:none;" onclick="sheetAction('edit')">✏️ 修改文字</button>
+            <button class="sheet-btn danger" id="sheetDeleteBtn" style="display:none;" onclick="sheetAction('delete')">🗑️ 刪除訊息</button>
             <button class="sheet-btn cancel" onclick="closeActionSheet()">取消</button>
         </div>
     </div>
 
-    <!-- 👤 點擊發言人頭像查看個人資料彈窗 -->
+    <!-- 👤 查看個人資料彈窗 -->
     <div id="userProfileModal" class="modal-overlay" onclick="closeUserProfileModal()">
-        <div class="modal-box" onclick="event.stopPropagation()" style="text-align: center;">
-            <img id="modalProfileAvatar" class="profile-avatar" src="" alt="頭貼" style="width: 90px; height: 90px; margin: 0 auto 12px; border-radius: 50%; object-fit: cover; border: 3px solid var(--line-green);">
-            <h3 id="modalProfileName" style="font-weight: bold; font-size: 16px; color: #333; margin-bottom: 4px;"></h3>
-            <p id="modalProfileEmail" style="font-size: 12px; color: #666; margin-bottom: 20px;"></p>
-            <button type="button" class="bg-gray-300 px-4 py-2 rounded text-sm w-full font-bold" onclick="closeUserProfileModal()">關閉</button>
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <img id="modalProfileAvatar" src="" alt="頭貼" style="width: 84px; height: 84px; margin: 0 auto 12px; border-radius: 50%; object-fit: cover; border: 3px solid var(--line-green);">
+            <h3 id="modalProfileName" style="font-weight: bold; font-size: 17px; color: #1e293b; margin-bottom: 4px;"></h3>
+            <p id="modalProfileEmail" style="font-size: 13px; color: #64748b; margin-bottom: 18px;"></p>
+            <button type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm w-full font-bold" onclick="closeUserProfileModal()">關閉</button>
         </div>
     </div>
 
-    <!-- 🔒 管理員彈窗 -->
+    <!-- ✏️ 修改訊息彈窗 -->
     <div id="actionModal" class="modal-overlay">
         <div class="modal-box">
-            <h4 id="modalTitle">管理員驗證</h4>
-            <div id="editContentContainer" style="display:none; text-align:left;">
-                <textarea id="modalEditText" style="height: 80px;"></textarea>
-            </div>
-            <div id="passwordInputGroup" style="text-align:left;">
-                <input type="password" id="modalPasswordInput" placeholder="請輸入管理員密碼">
+            <h4 id="modalTitle" class="font-bold text-slate-800 mb-3">修改訊息內容</h4>
+            <div id="editContentContainer" style="text-align:left;">
+                <textarea id="modalEditText" style="height: 90px; resize: none;"></textarea>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button type="button" class="bg-gray-300 px-4 py-1.5 rounded text-sm w-full" id="modalCancelBtn">取消</button>
-                <button type="button" class="bg-emerald-500 text-white px-4 py-1.5 rounded text-sm w-full" id="modalConfirmBtn">確定</button>
+                <button type="button" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm w-full font-bold" id="modalCancelBtn">取消</button>
+                <button type="button" class="bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm w-full font-bold" id="modalConfirmBtn">儲存變更</button>
             </div>
         </div>
     </div>
 
-    <!-- 🖼️ Lightbox 全螢幕圖片放大視窗 -->
+    <!-- 🖼️ 全螢幕圖片放大視窗 -->
     <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
         <img id="lightboxImg" class="lightbox-img" src="" alt="放大預覽圖片">
     </div>
 
-    <!-- 載入 Firebase Realtime Database 與 Auth -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, remove, update, get, onChildAdded, onChildChanged, onChildRemoved, runTransaction, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const ADMIN_EMAIL = "11550252@tajh.tp.edu.tw"; 
-        const ADMIN_PASSWORD = "admin1234"; 
-        const VIEW_PASSWORD = "709709"; // 查看留言密碼
+        // 簡易雜湊驗證，避免密碼直接明文出現在比對邏輯中
+        const VIEW_HASH = 1600342524; 
+
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return hash;
+        }
 
         const firebaseConfig = {
             apiKey: "AIzaSyBZ9s5Ku8aEzaVEmk_7ztbIiHXI6qmz5H0",
@@ -965,6 +1053,7 @@
         const unpinBtn = document.getElementById('unpinBtn');
 
         const userStatusText = document.getElementById('userStatusText');
+        const onlineDot = document.getElementById('onlineDot');
         const headerTitle = document.getElementById('headerTitle');
         const profileLoggedOut = document.getElementById('profileLoggedOut');
         const profileLoggedIn = document.getElementById('profileLoggedIn');
@@ -988,11 +1077,10 @@
 
         const actionSheet = document.getElementById('actionSheet');
         const sheetPinBtn = document.getElementById('sheetPinBtn');
+        const sheetEditBtn = document.getElementById('sheetEditBtn');
+        const sheetDeleteBtn = document.getElementById('sheetDeleteBtn');
         const actionModal = document.getElementById('actionModal');
-        const editContentContainer = document.getElementById('editContentContainer');
-        const passwordInputGroup = document.getElementById('passwordInputGroup');
         const modalEditText = document.getElementById('modalEditText');
-        const modalPasswordInput = document.getElementById('modalPasswordInput');
         const modalConfirmBtn = document.getElementById('modalConfirmBtn');
         const modalCancelBtn = document.getElementById('modalCancelBtn');
 
@@ -1002,7 +1090,6 @@
         let currentUser = null;
         let onlineCount = 1; 
         let currentReplyTarget = null;
-        let currentActionType = null; 
         let currentActionKey = null;
 
         let selectedFileObj = null;
@@ -1010,19 +1097,21 @@
 
         let usersProfiles = {};
         let isInitialLoad = true;
+        const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 
-        // 🔑 留言查看密碼驗證邏輯
+        // 🔑 查看密碼驗證
         window.unlockComments = function() {
             const inputPwd = document.getElementById('chatPasswordInput').value.trim();
-            if (inputPwd === VIEW_PASSWORD) {
+            if (simpleHash(inputPwd) === VIEW_HASH) {
                 sessionStorage.setItem('comments_unlocked', 'true');
                 document.getElementById('chatLockOverlay').style.display = 'none';
+                commentList.scrollTop = commentList.scrollHeight;
             } else {
-                alert("密碼錯誤，無法解鎖留言！");
+                alert("❌ 密碼錯誤，無法解鎖！");
+                document.getElementById('chatPasswordInput').value = '';
             }
         };
 
-        // 檢查是否已解鎖過留言
         if (sessionStorage.getItem('comments_unlocked') === 'true') {
             document.getElementById('chatLockOverlay').style.display = 'none';
         }
@@ -1031,13 +1120,25 @@
             if (e.key === 'Enter') unlockComments();
         });
 
+        // ⌨️ 輸入框自動增高 & Enter 送出
+        textArea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        textArea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // 📌 公告監聽
         onValue(pinnedRef, (snapshot) => {
             if (snapshot.exists() && snapshot.val().text) {
                 pinnedText.innerText = snapshot.val().text;
                 pinnedBanner.style.display = 'flex';
-                if (currentUser && currentUser.email === ADMIN_EMAIL) {
-                    unpinBtn.style.display = 'inline-block';
-                }
+                unpinBtn.style.display = (currentUser && currentUser.email === ADMIN_EMAIL) ? 'inline-block' : 'none';
             } else {
                 pinnedBanner.style.display = 'none';
             }
@@ -1049,8 +1150,9 @@
             }
         };
 
+        // 🤩 傳送貼圖
         window.sendSticker = function(stickerSrc) {
-            if (!currentUser) return alert("請先登入！");
+            if (!currentUser) return alert("請先至【帳號頁面】登入！");
             push(commentsRef, {
                 uid: currentUser.uid,
                 author: currentUser.displayName || "會員",
@@ -1071,7 +1173,6 @@
             avatarMenu.style.display = 'none';
         });
 
-        // 📷 頭像更換選單開關
         avatarUploadToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             avatarMenu.style.display = avatarMenu.style.display === 'flex' ? 'none' : 'flex';
@@ -1079,10 +1180,9 @@
             stickerPicker.style.display = 'none';
         });
 
-        window.closeAvatarMenu = function() {
-            avatarMenu.style.display = 'none';
-        };
+        window.closeAvatarMenu = function() { avatarMenu.style.display = 'none'; };
 
+        // 同步所有使用者頭貼
         onValue(usersProfileRef, (snapshot) => {
             if (snapshot.exists()) {
                 usersProfiles = snapshot.val();
@@ -1098,32 +1198,37 @@
             }
         });
 
+        // 🔔 通知 Toast
         function showNotificationToast(author, email, text, mediaType, imageUrl, mediaUrl, uid) {
+            // 自己發的訊息不跳通知
+            if (currentUser && currentUser.uid === uid) return;
+
             clearTimeout(toastTimer);
-            const avatarUrl = (usersProfiles[uid] && usersProfiles[uid].avatar) 
-                ? usersProfiles[uid].avatar 
-                : (currentUser?.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y");
+            const avatarUrl = (usersProfiles[uid] && usersProfiles[uid].avatar) ? usersProfiles[uid].avatar : DEFAULT_AVATAR;
 
             toastAvatar.src = avatarUrl;
             toastAuthorName.innerText = author || '匿名';
             toastBadgeContainer.innerHTML = (email === ADMIN_EMAIL) ? '<span class="admin-badge">👑 管理員</span>' : '';
 
             let previewText = text || '';
-            if (mediaType === 'sticker') previewText = '🤩 傳送了一個大貼圖';
-            else if (imageUrl || mediaUrl || mediaType === 'image') previewText = '📷 傳送了一張圖片';
+            if (mediaType === 'sticker') previewText = '🤩 傳送了一個貼圖';
+            else if (imageUrl || mediaUrl || mediaType === 'image') previewText = '📷 傳送了一張照片';
             else if (mediaType === 'video') previewText = '🎬 傳送了一段影片';
             else if (mediaType === 'doc') previewText = '📄 傳送了一個檔案';
 
             toastMessageText.innerText = previewText;
-
             notificationToast.classList.add('show');
-            toastTimer = setTimeout(() => {
-                hideToast();
-            }, 3500);
+            toastTimer = setTimeout(hideToast, 3500);
         }
 
         window.hideToast = function() {
             notificationToast.classList.remove('show');
+        };
+
+        window.handleToastClick = function() {
+            hideToast();
+            switchTab('chat');
+            commentList.scrollTop = commentList.scrollHeight;
         };
 
         window.switchTab = function(tabName) {
@@ -1141,36 +1246,50 @@
             }
         };
 
-        window.uploadMyAvatar = async function(input) {
-            if (!currentUser) return;
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                if (file.size > 2 * 1024 * 1024) {
-                    alert("大頭貼檔案過大，請小於 2MB！");
-                    return;
-                }
+        // 圖片壓縮輔助函式
+        function compressImage(file, maxWidth = 800, quality = 0.75) {
+            return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = async (e) => {
-                    const base64Avatar = e.target.result;
-                    myProfileAvatar.src = base64Avatar;
-                    await set(ref(db, `users_profile/${currentUser.uid}`), {
-                        email: currentUser.email,
-                        displayName: currentUser.displayName || "會員",
-                        avatar: base64Avatar
-                    });
-                    alert("🎉 大頭貼已成功更新！");
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > maxWidth) { h *= maxWidth / w; w = maxWidth; }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
                 };
+                reader.onerror = reject;
+            });
+        }
+
+        window.uploadMyAvatar = async function(input) {
+            if (!currentUser || !input.files || !input.files[0]) return;
+            try {
+                const compressedAvatar = await compressImage(input.files[0], 300, 0.8);
+                myProfileAvatar.src = compressedAvatar;
+                await set(ref(db, `users_profile/${currentUser.uid}`), {
+                    email: currentUser.email,
+                    displayName: currentUser.displayName || "會員",
+                    avatar: compressedAvatar
+                });
+                alert("🎉 大頭貼已成功更新！");
+            } catch (err) {
+                alert("大頭貼處理失敗：" + err.message);
             }
         };
 
-        // 👤 點擊聊天頭像查看個人資料
         window.openUserProfile = async function(uid) {
             if (!uid) return;
             const profileSnap = await get(ref(db, `users_profile/${uid}`));
             let profile = profileSnap.exists() ? profileSnap.val() : null;
 
-            const avatar = profile?.avatar || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+            const avatar = profile?.avatar || DEFAULT_AVATAR;
             const name = profile?.displayName || "會員";
             const email = profile?.email || "無公開電子郵件";
             const isAdmin = email === ADMIN_EMAIL;
@@ -1185,26 +1304,32 @@
             document.getElementById('userProfileModal').style.display = 'none';
         };
 
+        // 👆 長按與右鍵選單邏輯
         let pressTimer = null;
-        window.handleTouchStart = function(key, uid, author, text) {
+        window.handleTouchStart = function(key, uid, author, text, hasText) {
             pressTimer = setTimeout(() => {
-                openActionSheet(key, uid, author, text);
-            }, 600);
+                openActionSheet(key, uid, author, text, hasText);
+            }, 500);
         };
         window.handleTouchEnd = function() {
             clearTimeout(pressTimer);
         };
+        window.handleContextMenu = function(e, key, uid, author, text, hasText) {
+            e.preventDefault();
+            openActionSheet(key, uid, author, text, hasText);
+        };
 
         let activeSheetKey = null, activeSheetUid = null, activeSheetAuthor = null, activeSheetText = null;
 
-        function openActionSheet(key, uid, author, text) {
+        function openActionSheet(key, uid, author, text, hasText) {
             activeSheetKey = key; activeSheetUid = uid; activeSheetAuthor = author; activeSheetText = text;
             
-            if (currentUser && currentUser.email === ADMIN_EMAIL) {
-                sheetPinBtn.style.display = 'block';
-            } else {
-                sheetPinBtn.style.display = 'none';
-            }
+            const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+            const isOwner = currentUser && currentUser.uid === uid;
+
+            sheetPinBtn.style.display = isAdmin ? 'block' : 'none';
+            sheetEditBtn.style.display = ((isOwner || isAdmin) && hasText) ? 'block' : 'none';
+            sheetDeleteBtn.style.display = (isOwner || isAdmin) ? 'block' : 'none';
 
             actionSheet.style.display = 'flex';
         }
@@ -1223,8 +1348,8 @@
             else if (action === 'reply') { switchTab('chat'); startReply(key, author, text); }
             else if (action === 'pin') {
                 if (currentUser && currentUser.email === ADMIN_EMAIL) {
-                    set(pinnedRef, { text: `${author}: ${text || '（媒體內容）'}` });
-                    alert("📌 已將訊息釘選至頂部公告欄！");
+                    set(pinnedRef, { text: `${author}: ${text || '（多媒體訊息）'}` });
+                    alert("📌 已釘選至頂部公告！");
                 }
             }
             else if (action === 'edit') handleEdit(key, uid);
@@ -1245,8 +1370,12 @@
             avatarMenu.style.display = 'none';
         });
 
+        // 在線人數與已讀狀態同步
         onValue(onlineUsersRef, (snapshot) => {
             onlineCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 1;
+            if (currentUser) {
+                userStatusText.innerText = `在線 ${onlineCount} 人`;
+            }
             updateAllReadStatuses();
         });
 
@@ -1276,24 +1405,20 @@
 
         window.shareLocation = function() {
             if (!currentUser) return alert("請先登入！");
-            if (!navigator.geolocation) return alert("您的瀏覽器不支援定位！");
+            if (!navigator.geolocation) return alert("您的瀏覽器不支援定位功能！");
 
-            alert("正在取得 GPS 位置...");
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
                     const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-                    const text = `📍 我的目前位置：\n緯度: ${lat.toFixed(4)}, 經度: ${lng.toFixed(4)}\n👉 點擊查看 Google 地圖：\n${mapUrl}`;
+                    const text = `📍 我的目前位置：\nhttps://www.google.com/maps?q=${lat},${lng}`;
 
                     push(commentsRef, {
                         uid: currentUser.uid,
                         author: currentUser.displayName || "會員",
                         email: currentUser.email,
                         text: text,
-                        mediaUrl: null,
-                        mediaType: null,
-                        imageUrl: null,
                         likes: 0,
                         timestamp: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
                     });
@@ -1305,7 +1430,7 @@
 
         window.startReply = function(key, author, textSnippet) {
             if (!currentUser) return alert("請先登入！");
-            currentReplyTarget = { parentKey: key, author, snippet: (textSnippet || '').substring(0, 20) };
+            currentReplyTarget = { parentKey: key, author, snippet: (textSnippet || '（多媒體內容）').substring(0, 25) };
             replyAuthorName.innerText = author;
             replyBanner.style.display = 'flex';
             textArea.focus();
@@ -1313,12 +1438,10 @@
 
         window.cancelReplyTarget = function() { currentReplyTarget = null; replyBanner.style.display = 'none'; };
 
-        // 🟢 Google 帳號登入 / 註冊事件監聽
         profileGoogleLoginBtn.addEventListener('click', async () => {
             try {
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(auth, provider);
-                alert("👋 Google 登入成功！");
             } catch (e) { 
                 alert("登入失敗：" + e.message); 
             }
@@ -1329,10 +1452,12 @@
             signOut(auth);
         });
 
+        // 監聽登入狀態並即時更新氣泡左右對齊
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
-                userStatusText.innerText = "已連線";
+                onlineDot.classList.add('connected');
+                userStatusText.innerText = `在線 ${onlineCount} 人`;
                 profileLoggedOut.style.display = 'none';
                 profileLoggedIn.style.display = 'block';
 
@@ -1351,7 +1476,7 @@
                 if (snap.exists() && snap.val().avatar) {
                     myProfileAvatar.src = snap.val().avatar;
                 } else {
-                    const defaultAvatar = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+                    const defaultAvatar = user.photoURL || DEFAULT_AVATAR;
                     myProfileAvatar.src = defaultAvatar;
                     if (!snap.exists()) {
                         await set(userProfileRefPath, {
@@ -1366,38 +1491,51 @@
                 set(statusRef, true);
                 onDisconnect(statusRef).remove();
             } else {
+                onlineDot.classList.remove('connected');
                 userStatusText.innerText = "未登入";
                 profileLoggedOut.style.display = 'block';
                 profileLoggedIn.style.display = 'none';
             }
+
+            // 重新校正已渲染訊息的左右位置
+            refreshBubbleOwnership();
         });
 
+        function refreshBubbleOwnership() {
+            document.querySelectorAll('.chat-bubble-wrapper').forEach(wrapper => {
+                const msgUid = wrapper.getAttribute('data-uid');
+                const isMe = currentUser && currentUser.uid === msgUid;
+                wrapper.classList.toggle('is-me', isMe);
+                wrapper.classList.toggle('is-other', !isMe);
+                const timeCol = wrapper.querySelector('.time-read-col');
+                const readEl = wrapper.querySelector('.read-status');
+                if (isMe && !readEl && timeCol) {
+                    const div = document.createElement('div');
+                    div.className = 'read-status';
+                    timeCol.insertBefore(div, timeCol.firstChild);
+                } else if (!isMe && readEl) {
+                    readEl.remove();
+                }
+            });
+            updateAllReadStatuses();
+        }
+
         function convertFileToBase64(file, type) {
+            if (type === 'image') return compressImage(file, 800, 0.75);
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    if (type === 'image') {
-                        const img = new Image();
-                        img.src = e.target.result;
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 800;
-                            let w = img.width, h = img.height;
-                            if (w > MAX_WIDTH) { h *= MAX_WIDTH / w; w = MAX_WIDTH; }
-                            canvas.width = w; canvas.height = h;
-                            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                            resolve(canvas.toDataURL('image/jpeg', 0.7));
-                        };
-                    } else resolve(e.target.result);
-                };
+                reader.onload = (e) => resolve(e.target.result);
                 reader.onerror = error => reject(error);
             });
         }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentUser) return alert("請先至【帳號頁面】使用 Google 登入！");
+            if (!currentUser) {
+                switchTab('profile');
+                return alert("請先使用 Google 帳號登入後再發言！");
+            }
             const text = textArea.value.trim();
             if (!text && !selectedFileObj) return;
 
@@ -1406,8 +1544,8 @@
 
             try {
                 if (selectedFileObj) {
-                    if (selectedFileObj.size > 10 * 1024 * 1024) {
-                        alert("檔案大小超過 10MB 限制！");
+                    if (selectedFileObj.size > 8 * 1024 * 1024) {
+                        alert("檔案大小請勿超過 8MB！");
                         submitBtn.disabled = false;
                         return;
                     }
@@ -1434,12 +1572,13 @@
                     postData.replyToSnippet = currentReplyTarget.snippet;
                 }
 
-                push(commentsRef, postData);
+                await push(commentsRef, postData);
                 textArea.value = '';
+                textArea.style.height = 'auto';
                 clearSelectedMedia();
                 cancelReplyTarget();
             } catch (err) {
-                alert("上傳失敗：" + err.message);
+                alert("傳送失敗：" + err.message);
             } finally {
                 submitBtn.disabled = false;
             }
@@ -1449,58 +1588,44 @@
             runTransaction(ref(db, `comments/${key}/likes`), count => (count || 0) + 1);
         };
 
-        window.handleDelete = function(key, uid) {
-            if (!currentUser) return alert("請先登入！");
-            currentActionType = 'delete'; currentActionKey = key;
+        window.handleDelete = async function(key, uid) {
+            if (!currentUser) return;
             if (currentUser.uid === uid || currentUser.email === ADMIN_EMAIL) {
-                if (confirm("確定要刪除這則訊息嗎？")) executeDelete(key);
-            } else {
-                editContentContainer.style.display = 'none';
-                passwordInputGroup.style.display = 'block';
-                actionModal.style.display = 'flex';
+                if (confirm("確定要收回這則訊息嗎？")) {
+                    await remove(ref(db, `comments/${key}`));
+                }
             }
         };
 
         window.handleEdit = async function(key, uid) {
-            if (!currentUser) return alert("請先登入！");
-            currentActionType = 'edit'; currentActionKey = key;
-            const snap = await get(ref(db, `comments/${key}`));
-            if (!snap.exists()) return;
-            modalEditText.value = snap.val().text || '';
-
+            if (!currentUser) return;
             if (currentUser.uid === uid || currentUser.email === ADMIN_EMAIL) {
-                editContentContainer.style.display = 'block';
-                passwordInputGroup.style.display = 'none';
-                actionModal.style.display = 'flex';
-            } else {
-                editContentContainer.style.display = 'block';
-                passwordInputGroup.style.display = 'block';
+                currentActionKey = key;
+                const snap = await get(ref(db, `comments/${key}`));
+                if (!snap.exists()) return;
+                modalEditText.value = snap.val().text || '';
                 actionModal.style.display = 'flex';
             }
         };
 
         modalCancelBtn.onclick = () => actionModal.style.display = 'none';
         modalConfirmBtn.onclick = async () => {
-            const pwd = modalPasswordInput.value.trim();
-            if (pwd === ADMIN_PASSWORD || currentUser.email === ADMIN_EMAIL) {
-                if (currentActionType === 'delete') await executeDelete(currentActionKey);
-                else if (currentActionType === 'edit') {
-                    await update(ref(db, `comments/${currentActionKey}`), { text: modalEditText.value.trim() });
-                    actionModal.style.display = 'none';
-                }
-            } else alert("密碼錯誤！");
-        };
-
-        async function executeDelete(key) {
-            await remove(ref(db, `comments/${key}`));
+            const newText = modalEditText.value.trim();
+            if (!newText) return alert("訊息內容不能為空！");
+            await update(ref(db, `comments/${currentActionKey}`), { text: newText, edited: true });
             actionModal.style.display = 'none';
-        }
+        };
 
         function updateAllReadStatuses() {
             document.querySelectorAll('.read-status').forEach(el => {
                 const count = Math.max(0, onlineCount - 1);
-                el.innerText = count > 0 ? (count === 1 ? '已讀' : `已讀 ${count}`) : '未讀';
+                el.innerText = count > 0 ? (count === 1 ? '已讀' : `已讀 ${count}`) : '';
             });
+        }
+
+        function formatMessageHTML(rawText) {
+            let escaped = escapeHTML(rawText || '');
+            return escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #0284c7; text-decoration: underline;" onclick="event.stopPropagation()">$1</a>');
         }
 
         function renderComment(snapshot) {
@@ -1509,7 +1634,7 @@
             const key = snapshot.key;
             const isMe = currentUser && currentUser.uid === data.uid;
             const badge = data.email === ADMIN_EMAIL ? `<span class="admin-badge">👑 管理員</span>` : '';
-            const quote = data.replyToAuthor ? `<div class="quote-box"><strong>@${escapeHTML(data.replyToAuthor)}:</strong> ${escapeHTML(data.replyToSnippet || '')}</div>` : '';
+            const quote = data.replyToAuthor ? `<div class="quote-box"><strong>@${escapeHTML(data.replyToAuthor)}</strong><div class="truncate">${escapeHTML(data.replyToSnippet || '')}</div></div>` : '';
             
             const isSticker = data.mediaType === 'sticker';
             const activeImage = data.imageUrl || (data.mediaType === 'image' ? data.mediaUrl : null);
@@ -1518,14 +1643,14 @@
 
             let mediaHTML = '';
             if (isSticker) {
-                mediaHTML = `<img src="${data.mediaUrl}" class="sticker-img">`;
+                mediaHTML = `<img src="${data.mediaUrl}" class="sticker-img" loading="lazy">`;
             } else if (activeImage) {
-                mediaHTML = `<div class="file-attachment"><img src="${activeImage}" onclick="openLightbox('${activeImage}')"></div>`;
+                mediaHTML = `<div class="file-attachment"><img src="${activeImage}" loading="lazy" onclick="event.stopPropagation(); openLightbox('${activeImage}')"></div>`;
             } else if (activeVideo) {
-                mediaHTML = `<div class="file-attachment"><video src="${activeVideo}" controls></video></div>`;
+                mediaHTML = `<div class="file-attachment"><video src="${activeVideo}" controls onclick="event.stopPropagation()"></video></div>`;
             } else if (activeDoc) {
                 mediaHTML = `
-                    <a href="${activeDoc}" download="${data.fileName || 'download'}" class="doc-card">
+                    <a href="${activeDoc}" download="${escapeHTML(data.fileName || 'download')}" class="doc-card" onclick="event.stopPropagation()">
                         <div class="doc-icon">📄</div>
                         <div class="doc-info">
                             <div class="doc-name">${escapeHTML(data.fileName || '未命名檔案')}</div>
@@ -1534,35 +1659,34 @@
                     </a>`;
             }
 
-            const readStatusText = Math.max(0, onlineCount - 1) > 0 ? '已讀' : '未讀';
-            let formattedText = escapeHTML(data.text || '');
-            formattedText = formattedText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: #0056b3; text-decoration: underline;">$1</a>');
+            const readStatusText = Math.max(0, onlineCount - 1) > 0 ? (onlineCount - 1 === 1 ? '已讀' : `已讀 ${onlineCount - 1}`) : '';
+            const formattedText = formatMessageHTML(data.text);
+            const editedTag = data.edited ? `<span style="font-size:10px; opacity:0.6; margin-left:4px;">(已編輯)</span>` : '';
 
-            const avatarUrl = (usersProfiles[data.uid] && usersProfiles[data.uid].avatar) ? usersProfiles[data.uid].avatar : "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
-            const safeAuthor = escapeHTML(data.author || '匿名');
-            const safeText = escapeHTML(data.text || '');
+            const avatarUrl = (usersProfiles[data.uid] && usersProfiles[data.uid].avatar) ? usersProfiles[data.uid].avatar : DEFAULT_AVATAR;
+            const safeAuthor = escapeHTML(data.author || '匿名').replace(/'/g, "\\'");
+            const safeText = escapeHTML(data.text || '').replace(/\n/g, ' ').replace(/'/g, "\\'");
+            const hasText = Boolean(data.text);
 
             return `
-                <div class="chat-bubble-wrapper ${isMe ? 'is-me' : 'is-other'}" id="comment-${key}">
+                <div class="chat-bubble-wrapper ${isMe ? 'is-me' : 'is-other'}" id="comment-${key}" data-uid="${data.uid}">
                     <div class="chat-user-row">
                         <img class="chat-avatar" src="${avatarUrl}" data-uid="${data.uid}" alt="頭貼" title="查看個人資料" onclick="openUserProfile('${data.uid}')">
                         <div class="chat-content-box">
-                            <div class="chat-author-name">${safeAuthor} ${badge}</div>
+                            <div class="chat-author-name">${escapeHTML(data.author || '匿名')} ${badge}</div>
                             <div class="chat-meta-container">
-                                <div class="chat-bubble ${isSticker ? 'sticker-bubble' : ''}" 
-                                     ontouchstart="handleTouchStart('${key}', '${data.uid}', '${safeAuthor}', '${safeText}')"
-                                     ontouchend="handleTouchEnd()"
-                                     onmousedown="handleTouchStart('${key}', '${data.uid}', '${safeAuthor}', '${safeText}')"
-                                     onmouseup="handleTouchEnd()"
-                                     onmouseleave="handleTouchEnd()">
-                                    ${quote}
-                                    ${data.text ? `<div id="text-${key}">${formattedText}</div>` : ''}
-                                    ${mediaHTML}
-                                    <div style="margin-top: 4px; font-size: 11px; color: #ff4757;">
-                                        ${data.likes >0 ? `❤️ ${data.likes}` : ''}
+                                <div>
+                                    <div class="chat-bubble ${isSticker ? 'sticker-bubble' : ''}" 
+                                         ontouchstart="handleTouchStart('${key}', '${data.uid}', '${safeAuthor}', '${safeText}', ${hasText})"
+                                         ontouchend="handleTouchEnd()"
+                                         oncontextmenu="handleContextMenu(event, '${key}', '${data.uid}', '${safeAuthor}', '${safeText}', ${hasText})">
+                                        ${quote}
+                                        ${data.text ? `<div id="text-${key}">${formattedText}${editedTag}</div>` : ''}
+                                        ${mediaHTML}
                                     </div>
+                                    <div id="likes-${key}">${data.likes > 0 ? `<span class="likes-pill">❤️ ${data.likes}</span>` : ''}</div>
                                 </div>
-                                <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'};">
+                                <div class="time-read-col">
                                     ${isMe ? `<div class="read-status">${readStatusText}</div>` : ''}
                                     <div class="chat-time">${data.timestamp || ''}</div>
                                 </div>
@@ -1587,16 +1711,20 @@
         });
 
         get(commentsRef).then(() => {
-            setTimeout(() => { isInitialLoad = false; }, 1000);
+            setTimeout(() => { isInitialLoad = false; }, 800);
         });
 
         onChildChanged(commentsRef, (snapshot) => {
             const key = snapshot.key;
             const data = snapshot.val();
-            if (document.getElementById(`text-${key}`)) {
-                let txt = escapeHTML(data.text || '');
-                txt = txt.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: #0056b3; text-decoration: underline;">$1</a>');
-                document.getElementById(`text-${key}`).innerHTML = txt;
+            const textEl = document.getElementById(`text-${key}`);
+            if (textEl) {
+                const editedTag = data.edited ? `<span style="font-size:10px; opacity:0.6; margin-left:4px;">(已編輯)</span>` : '';
+                textEl.innerHTML = formatMessageHTML(data.text) + editedTag;
+            }
+            const likesEl = document.getElementById(`likes-${key}`);
+            if (likesEl) {
+                likesEl.innerHTML = data.likes > 0 ? `<span class="likes-pill">❤️ ${data.likes}</span>` : '';
             }
         });
 
